@@ -4101,11 +4101,19 @@ DETECTION SYSTEM (working correctly):
         vertical-align: middle !important;
       }
 
+      html.github-pages body.mobile-device.portrait button.clear-search-btn,
       html.github-pages body.mobile-device.portrait .clear-search-btn {
-        width: 8px !important;
-        height: 8px !important;
-        font-size: 9px !important;
-        right: 3px !important;
+        width: 18px !important;
+        height: 18px !important;
+        max-width: 18px !important;
+        max-height: 18px !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
+        font-size: 12px !important;
+        line-height: 18px !important;
+        right: 4px !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
       }
 
       html.github-pages body.mobile-device.portrait .item-card {
@@ -5624,8 +5632,9 @@ DETECTION SYSTEM (working correctly):
       let expandedRows = new Set(); // Track which rows are expanded (stores item index or identifier)
 
       // Layer navigation state
-      let layerConfig = []; // Layer configuration from backend
+      let layerConfig = []; // Layer configuration from backend (includes showSearch per layer)
       let layersData = {}; // All layer data by layer name
+      let mainLayerShowSearch = false; // Whether to show search on Main Layer (from F5)
       let navigationStack = []; // Stack of navigation history: [{type: "layer", layerName: "Layer 1", item: {...}}, ...]
       let currentLayerIndex = -1; // Index in layerConfig (-1 = home, 0 = Layer 1, 1 = Layer 2, etc.)
 
@@ -5654,6 +5663,32 @@ DETECTION SYSTEM (working correctly):
 
       // -------------------- Helpers --------------------
 
+      // Centralized function to update ALL UI visibility (back button, search bar, filter/sort, filters-row)
+      // Call this after any view change (tab switch, layer change, entering detail view)
+      function updateAllUIVisibility() {
+        // 1. Update back button visibility
+        const backToListBtn = document.getElementById("backToListBtn");
+        if (backToListBtn) {
+          // Show back button only in detail view when no layers exist (breadcrumb handles navigation when layers exist)
+          // Also show in list view when no layers exist and we came from somewhere
+          if (currentView === "detail" && layerConfig.length === 0) {
+            backToListBtn.style.display = "inline-flex";
+          } else if (currentView === "list" && layerConfig.length === 0 && navigationStack.length > 0) {
+            backToListBtn.style.display = "inline-flex";
+          } else {
+            backToListBtn.style.display = "none";
+          }
+        }
+
+        // 2. Update search bar visibility
+        updateSearchBarVisibility();
+
+        // 3. Update filter/sort visibility (this also calls updateFiltersRowVisibility)
+        updateFilterSortVisibility();
+
+        console.log('🔄 UI visibility updated - view:', currentView, 'layerConfig.length:', layerConfig.length);
+      }
+
       // Update filter and sort button visibility based on available columns
       function updateFilterSortVisibility() {
         const hasFilterColumns = filterColumns && filterColumns.length > 0;
@@ -5675,6 +5710,127 @@ DETECTION SYSTEM (working correctly):
           document.getElementById("filterWrapper").style.display = "none";
           document.getElementById("sortWrapper").style.display = "none";
         }
+
+        // Update filters-row visibility after filter/sort visibility changes
+        updateFiltersRowVisibility();
+      }
+
+      // Update search bar visibility based on current tab's showSearch setting
+      // Search visibility is now per-tab (F11-F20 in Settings sheet), applies to entire tab (all layers + detail view)
+      function updateSearchBarVisibility() {
+        const searchWrapper = document.getElementById("searchWrapper");
+        if (!searchWrapper) return;
+
+        // Get showSearch from current tab's config
+        let showSearch = false;
+        if (tabsConfig && tabsConfig.length > 0 && currentTabIndex >= 0 && currentTabIndex < tabsConfig.length) {
+          showSearch = tabsConfig[currentTabIndex].showSearch === true;
+        }
+
+        // Show/hide search wrapper
+        searchWrapper.style.display = showSearch ? "block" : "none";
+
+        // Clear search when hiding to avoid stale search state
+        if (!showSearch && searchQuery) {
+          searchQuery = "";
+          document.getElementById("searchInput").value = "";
+          document.getElementById("clearSearchBtn").style.display = "none";
+        }
+
+        console.log('🔍 Search bar visibility:', showSearch, '(tab:', currentTabIndex, ', tabName:', tabsConfig[currentTabIndex]?.tabName + ')');
+
+        // Update filters-row visibility after search bar visibility changes
+        updateFiltersRowVisibility();
+      }
+
+      // Update filters-row visibility based on whether any child elements are visible
+      function updateFiltersRowVisibility() {
+        const filtersRow = document.querySelector('.filters-row');
+        if (!filtersRow) return;
+
+        // Check visibility of all child elements
+        const searchWrapper = document.getElementById('searchWrapper');
+        const breadcrumbNav = document.getElementById('breadcrumbNav');
+        const backToListBtn = document.getElementById('backToListBtn');
+        const filterWrapper = document.getElementById('filterWrapper');
+        const sortWrapper = document.getElementById('sortWrapper');
+        const sheetLinkBtn = document.getElementById('sheetLinkBtn');
+        const addItemBtn = document.getElementById('addItemBtn');
+
+        // Helper to check if element is visible (display !== 'none')
+        const isVisible = (el) => {
+          if (!el) return false;
+          const style = el.style.display;
+          return style !== 'none' && style !== '';
+        };
+
+        // Check if element is visible via computed style (for elements without inline style)
+        const isVisibleComputed = (el) => {
+          if (!el) return false;
+          const computed = window.getComputedStyle(el);
+          return computed.display !== 'none';
+        };
+
+        // Check if any element is visible
+        const hasVisibleContent =
+          isVisibleComputed(searchWrapper) ||
+          isVisibleComputed(breadcrumbNav) ||
+          isVisibleComputed(backToListBtn) ||
+          isVisibleComputed(filterWrapper) ||
+          isVisibleComputed(sortWrapper) ||
+          isVisibleComputed(sheetLinkBtn) ||
+          isVisibleComputed(addItemBtn);
+
+        // Check if we're on GitHub Pages Mobile Portrait
+        const isGitHubPagesMobilePortrait =
+          document.documentElement.classList.contains('github-pages') &&
+          document.body.classList.contains('mobile-device') &&
+          document.body.classList.contains('portrait');
+
+        // Get top-header for margin adjustment
+        const topHeader = document.querySelector('.top-header');
+
+        if (hasVisibleContent) {
+          // Show filters-row with minimum height (search bar height + padding)
+          filtersRow.style.display = 'flex';
+
+          // GitHub Pages Mobile Portrait has smaller search bar (26px), use smaller min-height
+          filtersRow.style.minHeight = isGitHubPagesMobilePortrait ? '30px' : '48px';
+
+          // GitHub Pages Mobile Portrait: restore normal margins when filters-row is visible
+          if (isGitHubPagesMobilePortrait) {
+            // Remove margin from top-header
+            if (topHeader) {
+              topHeader.style.removeProperty('margin-bottom');
+            }
+
+            // Let CSS negative margins take over again
+            const gridView = document.getElementById('gridView');
+            const detailView = document.getElementById('detailView');
+            if (gridView) gridView.style.removeProperty('margin-top');
+            if (detailView) detailView.style.removeProperty('margin-top');
+          }
+        } else {
+          // Hide filters-row entirely
+          filtersRow.style.display = 'none';
+
+          // GitHub Pages Mobile Portrait: adjust margins when filters-row is hidden
+          if (isGitHubPagesMobilePortrait) {
+            // Add margin to top-header
+            if (topHeader) {
+              topHeader.style.setProperty('margin-bottom', '10px', 'important');
+            }
+
+            // Remove negative margins on grid/detail views since filters-row is gone
+            // Must use setProperty with 'important' to override CSS !important rules
+            const gridView = document.getElementById('gridView');
+            const detailView = document.getElementById('detailView');
+            if (gridView) gridView.style.setProperty('margin-top', '0', 'important');
+            if (detailView) detailView.style.setProperty('margin-top', '0', 'important');
+          }
+        }
+
+        console.log('📋 Filters row visibility:', hasVisibleContent);
       }
 
       function formatDate(dateValue) {
@@ -6259,23 +6415,41 @@ DETECTION SYSTEM (working correctly):
         // Get base items depending on current context
         let items;
 
+        // Check if there's an active search query
+        const hasActiveSearch = searchQuery && searchQuery.trim() !== "";
+
         if (currentView === "layer") {
-          // If in layer view, don't apply filters/sorting - just re-render current layer
-          if (currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
-            const layerName = layerConfig[currentLayerIndex].layerName;
-            const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
-            renderLayerView(currentLayerIndex, parentFilterName);
-            return;
+          // If in layer view with active search, search allItems and show results
+          if (hasActiveSearch) {
+            // Search always searches allItems (Main Layer), regardless of current layer
+            items = allItems.slice();
+            // Temporarily switch to list view for rendering search results
+            // (preSearchView saves the original view for restoration)
+            currentView = "list";
+            // Will fall through to apply search filter and render results
+          } else {
+            // No search - just re-render current layer
+            if (currentLayerIndex >= 0 && currentLayerIndex < layerConfig.length) {
+              const layerName = layerConfig[currentLayerIndex].layerName;
+              const parentFilterName = navigationStack.length > 0 ? navigationStack[navigationStack.length - 1].itemName : null;
+              renderLayerView(currentLayerIndex, parentFilterName);
+              return;
+            }
           }
         } else if (navigationStack.length > 0 && currentView === "list") {
-          // If viewing Main items after layer navigation, start with those filtered items
-          // Reconstruct the base filtered items from layer navigation
-          const lastNav = navigationStack[navigationStack.length - 1];
-          const mainColumnName = layerConfig[lastNav.layerIndex].mainColumnName;
-          items = allItems.filter(item => {
-            const colValue = item[mainColumnName];
-            return colValue && String(colValue).trim() === lastNav.itemName;
-          }).slice();
+          // If viewing Main items after layer navigation
+          if (hasActiveSearch) {
+            // Search always searches ALL items, ignoring layer navigation filter
+            items = allItems.slice();
+          } else {
+            // No search - use layer-filtered items
+            const lastNav = navigationStack[navigationStack.length - 1];
+            const mainColumnName = layerConfig[lastNav.layerIndex].mainColumnName;
+            items = allItems.filter(item => {
+              const colValue = item[mainColumnName];
+              return colValue && String(colValue).trim() === lastNav.itemName;
+            }).slice();
+          }
         } else {
           // Normal view - use all items
           items = allItems.slice();
@@ -7635,8 +7809,8 @@ DETECTION SYSTEM (working correctly):
           renderLayerCardsView(standardizedItems, grid, layerIndex);
         }
 
-        // Update filter/sort button visibility based on view type
-        updateFilterSortVisibility();
+        // Update all UI visibility (back button, search bar, filter/sort, filters-row)
+        updateAllUIVisibility();
       }
 
       // Render layer items as cards
@@ -8258,14 +8432,17 @@ DETECTION SYSTEM (working correctly):
         currentView = "list";
         renderList(filteredItems);
 
-        // Update UI for back button
-        updateLayerNavigationUI();
+        // Update breadcrumb for navigation
+        updateBreadcrumb();
 
         // Push history state
         history.pushState({
           view: "list",
           layerFiltered: true
         }, "", "");
+
+        // Update all UI visibility (back button, search bar, filter/sort, filters-row)
+        updateAllUIVisibility();
       }
 
       // Update UI elements for layer navigation
@@ -8293,6 +8470,7 @@ DETECTION SYSTEM (working correctly):
         if (navigationStack.length === 0 && currentView !== "layer") {
           // No breadcrumb needed
           breadcrumbNav.style.display = "none";
+          updateFiltersRowVisibility();
           return;
         }
 
@@ -8307,6 +8485,7 @@ DETECTION SYSTEM (working correctly):
 
         breadcrumbNav.innerHTML = breadcrumbHTML;
         breadcrumbNav.style.display = "flex";
+        updateFiltersRowVisibility();
       }
 
       // Navigate to a specific breadcrumb level
@@ -8362,18 +8541,14 @@ DETECTION SYSTEM (working correctly):
         currentLayerIndex = -1;
 
         if (layerConfig.length > 0) {
-          // Show Layer 1
+          // Show Layer 1 (renderLayerView calls updateAllUIVisibility at the end)
           renderLayerView(0, null);
-          document.getElementById("backToListBtn").style.display = "none";
-          document.getElementById("filterWrapper").style.display = "none";
-          document.getElementById("sortWrapper").style.display = "none";
         } else {
           // No layers - show main list
           currentView = "list";
           applyFiltersAndSorting();
-          document.getElementById("backToListBtn").style.display = "none";
-          // Show filter/sort only if columns are configured
-          updateFilterSortVisibility();
+          // Update all UI visibility
+          updateAllUIVisibility();
         }
 
         updateBreadcrumb();
@@ -8434,6 +8609,8 @@ DETECTION SYSTEM (working correctly):
 
       // Save current tab state before switching
       function saveCurrentTabState() {
+        console.log('📦 SAVING state - currentTabIndex:', currentTabIndex, 'currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
+
         tabStates[currentTabIndex] = {
           navigationStack: [...navigationStack],
           currentLayerIndex: currentLayerIndex,
@@ -8451,6 +8628,8 @@ DETECTION SYSTEM (working correctly):
 
       // Restore tab state after switching
       function restoreTabState(tabIndex) {
+        console.log('📂 RESTORING state for tab', tabIndex, '- tabStates[tabIndex] exists:', !!tabStates[tabIndex]);
+
         if (tabStates[tabIndex]) {
           const state = tabStates[tabIndex];
           navigationStack = [...state.navigationStack];
@@ -8467,6 +8646,7 @@ DETECTION SYSTEM (working correctly):
           document.getElementById("searchInput").value = searchQuery;
 
           console.log('📂 Restored state for tab', tabIndex, ':', state);
+          console.log('📂 After restore - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex, 'navStack:', JSON.stringify(navigationStack));
         } else {
           // No saved state - initialize fresh
           navigationStack = [];
@@ -8531,6 +8711,7 @@ DETECTION SYSTEM (working correctly):
           const cachedData = tabDataCache[tabIndex];
           layerConfig = cachedData.layerConfig || [];
           layersData = cachedData.layersData || {};
+          mainLayerShowSearch = cachedData.mainLayerShowSearch || false;
           allItems = cachedData.items || [];
           columnConfig = cachedData.columnConfig || [];
           headers = cachedData.headers || [];
@@ -8558,7 +8739,7 @@ DETECTION SYSTEM (working correctly):
           renderTabMenu();
           updateBreadcrumb();
           updateChipsUI();
-          updateFilterSortVisibility();
+          updateAllUIVisibility();
 
           return;
         }
@@ -8586,6 +8767,7 @@ DETECTION SYSTEM (working correctly):
             // Update app data with tab-specific configuration
             layerConfig = tabData.layerConfig || [];
             layersData = tabData.layersData || {};
+            mainLayerShowSearch = tabData.mainLayerShowSearch || false;
             allItems = tabData.items || [];
             columnConfig = tabData.columnConfig || [];
             headers = tabData.headers || [];
@@ -8602,6 +8784,7 @@ DETECTION SYSTEM (working correctly):
             tabDataCache[tabIndex] = {
               layerConfig: layerConfig,
               layersData: layersData,
+              mainLayerShowSearch: mainLayerShowSearch,
               items: allItems,
               columnConfig: columnConfig,
               headers: headers,
@@ -8623,7 +8806,7 @@ DETECTION SYSTEM (working correctly):
             renderTabMenu();
             updateBreadcrumb();
             updateChipsUI();
-            updateFilterSortVisibility();
+            updateAllUIVisibility();
           })
           .withFailureHandler(function(error) {
             console.error('❌ Error loading tab data:', error);
@@ -8654,6 +8837,7 @@ DETECTION SYSTEM (working correctly):
         tabDataCache[0] = {
           layerConfig: layerConfig,
           layersData: layersData,
+          mainLayerShowSearch: mainLayerShowSearch,
           items: allItems,
           columnConfig: columnConfig,
           headers: headers,
@@ -8690,6 +8874,7 @@ DETECTION SYSTEM (working correctly):
               tabDataCache[tabIndex] = {
                 layerConfig: tabData.layerConfig || [],
                 layersData: tabData.layersData || {},
+                mainLayerShowSearch: tabData.mainLayerShowSearch || false,
                 items: tabData.items || [],
                 columnConfig: tabData.columnConfig || [],
                 headers: tabData.headers || [],
@@ -8707,21 +8892,32 @@ DETECTION SYSTEM (working correctly):
 
       // Helper function to render the current tab view
       function renderTabView() {
+        console.log('🎨 renderTabView called with:', {
+          currentView: currentView,
+          currentLayerIndex: currentLayerIndex,
+          navigationStackLength: navigationStack.length,
+          navigationStack: JSON.stringify(navigationStack)
+        });
+
         if (currentView === "detail" && currentDetailIndex >= 0 && currentDisplayedItems[currentDetailIndex]) {
+          console.log('🎨 Rendering DETAIL view');
           showDetails(currentDisplayedItems[currentDetailIndex], currentDetailIndex);
         } else if (currentView === "layer" && currentLayerIndex >= 0) {
-          // Reconstruct layer view from navigation stack
-          if (navigationStack.length > 0) {
-            const lastNav = navigationStack[navigationStack.length - 1];
-            const parentFilter = navigationStack.length >= 2
-              ? navigationStack[navigationStack.length - 2].itemName
-              : null;
-            renderLayerView(lastNav.layerIndex, parentFilter);
-          } else {
-            renderLayerView(currentLayerIndex, null);
-          }
+          // Restore layer view using saved currentLayerIndex
+          // navigationStack stores layers we came FROM, so parent filter is the last item's itemName
+          const parentFilter = navigationStack.length > 0
+            ? navigationStack[navigationStack.length - 1].itemName
+            : null;
+          console.log('🎨 Rendering LAYER view:', { currentLayerIndex, parentFilter });
+          renderLayerView(currentLayerIndex, parentFilter);
+        } else if (currentView === "list" && navigationStack.length > 0) {
+          // Restore filtered list view (came from layer navigation)
+          const lastNav = navigationStack[navigationStack.length - 1];
+          console.log('🎨 Rendering filtered LIST view from layer:', lastNav);
+          showMainItemsFilteredByLayer(lastNav.layerIndex, lastNav.itemName);
         } else {
           // Navigate to home (Layer 1 or main list)
+          console.log('🎨 Rendering HOME (else branch) - currentView:', currentView, 'currentLayerIndex:', currentLayerIndex);
           navigateToHome();
         }
       }
@@ -8761,14 +8957,8 @@ DETECTION SYSTEM (working correctly):
         currentView = "detail";
         history.pushState({ view: "detail", index: index }, "", "");
 
-        // Show back button only if no layers (breadcrumb handles navigation when layers exist)
-        if (layerConfig.length === 0) {
-          document.getElementById("backToListBtn").style.display = "inline-flex";
-        } else {
-          document.getElementById("backToListBtn").style.display = "none";
-        }
-        document.getElementById("filterWrapper").style.display = "none";
-        document.getElementById("sortWrapper").style.display = "none";
+        // Update all UI visibility (back button, search bar, filter/sort, filters-row)
+        updateAllUIVisibility();
 
         // Add 'no-image' class if there's no image
         const hasImage = imageColumn && item[imageColumn.columnName];
@@ -10101,6 +10291,7 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
+            mainLayerShowSearch = payload.mainLayerShowSearch || false;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -10109,6 +10300,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
+            console.log('📊 Main Layer Show Search:', mainLayerShowSearch);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
@@ -10181,6 +10373,7 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
+            mainLayerShowSearch = payload.mainLayerShowSearch || false;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -10189,6 +10382,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
+            console.log('📊 Main Layer Show Search:', mainLayerShowSearch);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
@@ -10253,6 +10447,7 @@ DETECTION SYSTEM (working correctly):
             // Store layer configuration and data
             layerConfig = payload.layerConfig || [];
             layersData = payload.layersData || {};
+            mainLayerShowSearch = payload.mainLayerShowSearch || false;
 
             // Store tabs configuration (if available)
             tabsConfig = payload.tabsConfig || [];
@@ -10261,6 +10456,7 @@ DETECTION SYSTEM (working correctly):
             console.log('📊 Layer Config:', layerConfig);
             console.log('📊 Layers Data:', layersData);
             console.log('📊 Has Layers:', layerConfig.length > 0);
+            console.log('📊 Main Layer Show Search:', mainLayerShowSearch);
             console.log('📑 Tabs Config:', tabsConfig);
             console.log('📑 Has Tabs:', tabsConfig.length > 0);
 
