@@ -550,8 +550,9 @@ function getTabsConfig() {
       return [];
     }
 
-    // Read tab configuration from B11:E20 (data rows, skipping header in row 10)
-    var tabRange = settingsSheet.getRange('B11:E20');
+    // Read tab configuration from B11:F20 (data rows, skipping header in row 10)
+    // Column F contains showSearch setting ("Yes" = visible, anything else = hidden)
+    var tabRange = settingsSheet.getRange('B11:F20');
     var tabValues = tabRange.getValues();
 
     var tabsConfig = [];
@@ -562,18 +563,25 @@ function getTabsConfig() {
       var layersSheetName = row[1]; // Column C
       var mainSheetName = row[2]; // Column D
       var columnConfigSheetName = row[3]; // Column E
+      var showSearchValue = row[4]; // Column F
 
       // Skip empty rows (check if tab name is empty)
       if (!tabName || tabName.toString().trim() === '') {
         continue;
       }
 
+      // showSearch: "Yes" = true, anything else (including blank) = false
+      var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
+
       tabsConfig.push({
         tabName: tabName.toString().trim(),
         layersSheetName: layersSheetName ? layersSheetName.toString().trim() : '',
         mainSheetName: mainSheetName ? mainSheetName.toString().trim() : '',
-        columnConfigSheetName: columnConfigSheetName ? columnConfigSheetName.toString().trim() : ''
+        columnConfigSheetName: columnConfigSheetName ? columnConfigSheetName.toString().trim() : '',
+        showSearch: showSearch
       });
+
+      Logger.log('Tab ' + (i + 1) + ': ' + tabName + ' (showSearch: ' + showSearch + ')');
     }
 
     Logger.log('Tabs config loaded: ' + tabsConfig.length + ' tabs');
@@ -602,29 +610,35 @@ function getLayerConfig(sheetName) {
 
     var layers = [];
 
-    // Hardcoded positions: B2:C4
-    // B2: Layer 1, C2: Ex Cat
-    // B3: Layer 2, C3: Category
-    // B4: Layer 3, C4: (blank)
+    // Hardcoded positions: B2:C4 for layer config, F2:F4 for search visibility
+    // B2: Layer 1, C2: Ex Cat, F2: Show search on Layer 1
+    // B3: Layer 2, C3: Category, F3: Show search on Layer 2
+    // B4: Layer 3, C4: (blank), F4: Show search on Layer 3
     var layerRows = [2, 3, 4]; // Rows for Layer 1, 2, 3
     var layerCol = 2;  // Column B (1-indexed)
     var mainCol = 3;   // Column C (1-indexed)
+    var showSearchCol = 6; // Column F (1-indexed)
 
     for (var i = 0; i < layerRows.length; i++) {
       var row = layerRows[i];
       var layerName = layersSheet.getRange(row, layerCol).getValue();
       var mainColumnName = layersSheet.getRange(row, mainCol).getValue();
+      var showSearchValue = layersSheet.getRange(row, showSearchCol).getValue();
 
       layerName = String(layerName || "").trim();
       mainColumnName = String(mainColumnName || "").trim();
+
+      // showSearch: "Yes" = true, anything else (including blank) = false
+      var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
 
       // Only include layers that have both name and main column
       if (layerName !== "" && mainColumnName !== "") {
         layers.push({
           layerName: layerName,
-          mainColumnName: mainColumnName
+          mainColumnName: mainColumnName,
+          showSearch: showSearch
         });
-        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName);
+        Logger.log("✓ Found layer: " + layerName + " -> " + mainColumnName + " (showSearch: " + showSearch + ")");
       }
     }
 
@@ -633,6 +647,32 @@ function getLayerConfig(sheetName) {
   } catch (e) {
     Logger.log("✗ Error getting layer config: " + e.toString());
     return [];
+  }
+}
+
+/**
+ * Get Main Layer (Layer 4) search visibility from F5
+ * @param {string} sheetName - Name of the Layers sheet (default: 'Layers')
+ * @return {boolean} Whether search bar should be shown on Main Layer
+ */
+function getMainLayerShowSearch(sheetName) {
+  sheetName = sheetName || 'Layers';
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var layersSheet = ss.getSheetByName(sheetName);
+
+    if (!layersSheet) {
+      return false;
+    }
+
+    // F5 controls search visibility for Main Layer (Layer 4)
+    var showSearchValue = layersSheet.getRange(5, 6).getValue(); // Row 5, Column F
+    var showSearch = String(showSearchValue || "").trim().toLowerCase() === "yes";
+    Logger.log("✓ Main Layer showSearch: " + showSearch);
+    return showSearch;
+  } catch (e) {
+    Logger.log("✗ Error getting main layer search config: " + e.toString());
+    return false;
   }
 }
 
@@ -980,6 +1020,7 @@ function getInitialData(token) {
 
   // Get layer configuration using the determined sheet name
   var layerConfig = getLayerConfig(layersSheetName);
+  var mainLayerShowSearch = getMainLayerShowSearch(layersSheetName);
   var layersData = {};
 
   // Load data for each configured layer
@@ -1005,7 +1046,8 @@ function getInitialData(token) {
       columnConfig: getColumnConfig(columnConfigSheetName),
       layerConfig: layerConfig,
       layersData: layersData,
-      tabsConfig: tabsConfig
+      tabsConfig: tabsConfig,
+      mainLayerShowSearch: mainLayerShowSearch
     };
   }
 
@@ -1026,7 +1068,8 @@ function getInitialData(token) {
     columnConfig: getColumnConfig(columnConfigSheetName),
     layerConfig: layerConfig,
     layersData: layersData,
-    tabsConfig: tabsConfig
+    tabsConfig: tabsConfig,
+    mainLayerShowSearch: mainLayerShowSearch
   };
 }
 
@@ -1060,6 +1103,7 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
 
     // Load tab-specific configuration and data
     var layerConfig = getLayerConfig(layersSheetName);
+    var mainLayerShowSearch = getMainLayerShowSearch(layersSheetName);
     var layersData = {};
 
     // Load data for each configured layer
@@ -1081,7 +1125,8 @@ function getTabData(layersSheetName, mainSheetName, columnConfigSheetName, token
       items: items,
       columnConfig: columnConfig,
       headers: headers,
-      settings: tabSettings
+      settings: tabSettings,
+      mainLayerShowSearch: mainLayerShowSearch
     };
   } catch (err) {
     Logger.log("Error in getTabData: " + err);
