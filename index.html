@@ -1,4 +1,5 @@
 
+
 <!--
 ==================================================================================
 IMPORTANT: READ ME BEFORE EDITING ANYTHING ON THIS CODE
@@ -378,7 +379,7 @@ DETECTION SYSTEM (working correctly):
       }
 
       body {
-        padding: 18px 0 32px;
+        padding: 10px 0 10px;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter",
           "Segoe UI", sans-serif;
         background: radial-gradient(
@@ -1939,8 +1940,8 @@ DETECTION SYSTEM (working correctly):
         display: none !important;
       }
 
-      /* Hide background nav buttons when fullscreen overlay is open (diaporama and detail view) */
-      body:has(#imgOverlay[style*="flex"]) .diaporama-nav,
+      /* Hide background nav buttons when fullscreen overlay is open (slide and detail view) */
+      body:has(#imgOverlay[style*="flex"]) .slide-nav,
       body:has(#imgOverlay[style*="flex"]) .nav-arrow-btn {
         display: none !important;
       }
@@ -3692,10 +3693,11 @@ DETECTION SYSTEM (working correctly):
       /* ==================== DESKTOP DEVICE STYLES ==================== */
       /* Desktop: 12px side borders total */
       /* Multiple selectors for maximum compatibility */
+      /* Body padding: 10px top + 10px bottom (used in Slide height calc) */
       body.desktop-device,
       html.desktop-device body,
       html[data-device="desktop-device"] body {
-        padding: 18px 0 32px !important;
+        padding: 10px 0 10px !important;
       }
 
       body.desktop-device .shell,
@@ -4305,20 +4307,27 @@ DETECTION SYSTEM (working correctly):
         min-height: 25px !important;
       }
 
-      /* Fix body top padding for mobile devices */
+      /* Mobile device body padding: 4px top and bottom */
+      body.mobile-device {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+      }
+
+      /* GitHub Pages Mobile Portrait: 4px top + 8px bottom (used in Slide height calc) */
       html.github-pages body.mobile-device.portrait {
         padding-top: 4px !important;
+        padding-bottom: 8px !important;
       }
 
       html.github-pages body.mobile-device.landscape {
         padding-top: 4px !important;
-        padding-bottom: 8px !important; /* Reduced from default 32px */
+        padding-bottom: 4px !important;
       }
 
-      /* Also for non-GitHub Pages landscape - reduce body bottom padding */
+      /* Non-GitHub Pages mobile/tablet landscape - reduce body bottom padding */
       body.mobile-device.landscape,
       body.tablet-device.landscape {
-        padding-bottom: 8px !important;
+        padding-bottom: 4px !important;
       }
 
       html.github-pages body.mobile-device.portrait .shell {
@@ -4326,10 +4335,25 @@ DETECTION SYSTEM (working correctly):
         padding-bottom: 22px !important; /* Account for bottom bar height */
       }
 
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile portrait */
+      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) {
+        padding-bottom: 44px !important; /* Account for bottom bar height */
+      }
+
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile portrait */
+      html.github-pages body.mobile-device.portrait .shell:has(#detailView[style*="display: block"]) {
+        padding-bottom: 44px !important; /* Account for bottom bar height */
+      }
+
       html.github-pages body.mobile-device.landscape .shell {
         padding-left: 6px !important;
         padding-right: 6px !important;
-        padding-bottom: 0 !important; /* No bottom bar in landscape */
+        padding-bottom: 4px !important; /* No bottom bar in landscape */
+      }
+
+      /* Apply padding-bottom only on detail view for GitHub Pages mobile landscape */
+      html.github-pages body.mobile-device.landscape .shell:has(#detailView[style*="display: block"]) {
+        padding-bottom: 4px !important; /* No bottom bar in landscape */
       }
 
       /* Ensure bottom bar is completely removed in landscape (not just hidden) */
@@ -4827,124 +4851,264 @@ DETECTION SYSTEM (working correctly):
         min-width: 60px !important;
       }
 
-      /* ==================== DIAPORAMA VIEW STYLES ==================== */
+      /* ====================================================================================
+         SLIDE VIEW STYLES
+         ====================================================================================
 
-      /* Base diaporama container */
-      .diaporama-view {
+         There are 6 UI displays for different device/orientation combinations:
+
+         1. DESKTOP (Default code)
+            - Section: "SLIDE VIEW STYLES" (this section - base styles)
+            - Same for GitHub Pages and Apps Script
+
+         2. TABLET PORTRAIT ORIENTATION
+            - Section: "SLIDE - TABLET PORTRAIT"
+            - Same for GitHub Pages and Apps Script
+
+         3. TABLET LANDSCAPE ORIENTATION
+            - Section: "SLIDE - TABLET LANDSCAPE"
+            - Same for GitHub Pages and Apps Script
+
+         4. MOBILE PORTRAIT ORIENTATION - Apps Script
+            - Section: "SLIDE - MOBILE PORTRAIT"
+
+         5. MOBILE PORTRAIT ORIENTATION - GitHub Pages
+            - Section: "SLIDE - GITHUB PAGES MOBILE PORTRAIT (50% scaled)"
+            - This is the MAIN UI difference between GitHub Pages and Apps Script
+
+         6. MOBILE LANDSCAPE ORIENTATION
+            - Section: "SLIDE - MOBILE LANDSCAPE"
+            - Same for GitHub Pages and Apps Script
+
+         NOTE: Unlike the main UI, Slide has SEPARATE sections for Mobile and Tablet landscape.
+
+         DETECTION SYSTEM:
+         - Device detection: mobile-device / tablet-device / desktop-device
+         - GitHub Pages detection: html.github-pages class
+         - Orientation detection: portrait / landscape classes
+
+         ==================================================================================== */
+
+      /* ==================== 1. SLIDE - DESKTOP (Default) ==================== */
+
+      /* Base slide container */
+      .slide-view {
         width: 100%;
         padding: 10px;
         box-sizing: border-box;
-        /* Ensure diaporama-view itself has height when combined with vertical/horizontal */
+        margin-top: -10px !important; /* Override .grid margin-top to control slide gap */
+        /* Ensure slide-view itself has height when combined with vertical/horizontal */
       }
 
-      /* Vertical style: scroll-snap with centered fit-content items */
-      .diaporama-vertical {
-        display: grid;
-        /* Each row is viewport-sized, creating snap areas */
-        grid-auto-rows: calc(100dvh - 120px);
-        gap: 0;
-        overflow-y: auto;
-        scroll-snap-type: y mandatory;
-        /* Height = viewport - top-header. Use dvh for mobile browser support */
-        height: calc(100dvh - 120px);
-        max-height: calc(100dvh - 120px);
-      }
-
-      /* Horizontal style: single item view */
-      .diaporama-horizontal {
-        position: relative;
-        overflow: hidden;
-        /* Use CSS Grid for perfect centering */
-        display: grid;
-        /* place-content centers the grid tracks (which contain the item) within the container */
-        place-content: center;
-        /* Height = viewport - top-header. Use dvh for mobile browser support */
-        height: calc(100dvh - 120px);
-        max-height: calc(100dvh - 120px);
-      }
-
-      /* Keep section scrolling enabled */
-      .diaporama-horizontal .diaporama-above-picture,
-      .diaporama-horizontal .diaporama-below-picture {
-        overflow-y: auto;
-      }
-
-      .diaporama-item-container {
+      /* Vertical style: natural document flow with page scrolling */
+      .slide-vertical {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.3s ease;
-        height: fit-content;
-        max-height: 100%;
-        width: fit-content;
-        max-width: 100%;
+        gap: 20px;
+        /* Allow content to determine height - page scrolls if needed */
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        border-radius: 16px;
       }
 
-      .diaporama-horizontal .diaporama-item-container {
-        /* Match vertical style: full viewport-sized grid cell with centered content */
-        display: grid;
-        place-content: center;
-        place-items: center;
+      /* Center compact items in vertical slide */
+      .slide-vertical:has(.slide-item.slide-compact) {
+        align-items: center;
+      }
+
+      /* Horizontal style: single item view with natural flow */
+      .slide-horizontal {
+        position: relative;
+        /* Allow content to determine height - page scrolls if needed */
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        border-radius: 16px;
+        /* Fill viewport height to enable swiping anywhere (mobile/tablet) */
+        min-height: calc(100vh - 100px);
+      }
+
+      /* Sections show full content - no internal scrolling */
+      .slide-horizontal .slide-above-picture,
+      .slide-horizontal .slide-below-picture {
+        overflow: visible;
+      }
+
+      .slide-item-container {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        /* No centering - content flows from top */
+        transition: transform 0.3s ease;
+        height: auto;
+        max-height: none;
         width: 100%;
         max-width: 100%;
-        height: calc(100dvh - 120px);
-        max-height: calc(100dvh - 120px);
       }
 
-      .diaporama-item {
-        flex-shrink: 1;
-        width: fit-content;
+      .slide-horizontal .slide-item-container {
+        /* Natural flow - no centering, content expands fully */
+        display: flex;
+        flex-direction: column;
+        width: 100%;
         max-width: 100%;
+        height: auto;
+        max-height: none;
+      }
+
+      /* Center compact items horizontally */
+      .slide-horizontal:has(.slide-item.slide-compact) .slide-item-container,
+      .slide-vertical:has(.slide-item.slide-compact) .slide-item-container {
+        align-items: center;
+      }
+
+      /* Desktop: Ensure compact vertical slide items are centered */
+      body.desktop-device .slide-vertical:has(.slide-item.slide-compact) .slide-item-container {
+        align-items: center !important;
+      }
+
+      /* ==========================================================================
+         SLIDE ITEM LAYOUT - Natural Document Flow (Page Scrolls)
+
+         Structure (vertical, top to bottom):
+         ┌─────────────────────────────────────┐
+         │ SubId1 Row                          │
+         │  ┌──────────────────────┬─────────┐ │
+         │  │  SubId1 (centered)   │TopCorner│ │  ← Same row
+         │  └──────────────────────┴─────────┘ │
+         ├─────────────────────────────────────┤
+         │ Long text Up (centered)             │  ← Shows full content
+         ├─────────────────────────────────────┤
+         │ Main Image                          │  ← Natural size
+         ├─────────────────────────────────────┤
+         │ Long text Down                      │  ← Shows full content
+         ├─────────────────────────────────────┤
+         │  ┌─────────────┬─────────────┐      │
+         │  │ Detail Left │ Detail Right│      │  ← Two columns
+         │  └─────────────┴─────────────┘      │
+         │  Bottom                             │  ← Shows full content
+         ├─────────────────────────────────────┤
+         │  SubId2                             │  ← Shows full content
+         └─────────────────────────────────────┘
+
+         Key: No max-height constraints - all sections expand to show full content
+              Page scrolls if total content exceeds viewport
+              No vertical centering - content flows from top
+              Empty sections take no space
+         ========================================================================== */
+
+      .slide-item {
+        /* Natural height - expands to show all content */
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
         padding: 15px;
         box-sizing: border-box;
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
+        border-radius: 20px;
         box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+        /* Flex column to stack sections vertically */
         display: flex;
         flex-direction: column;
-        align-items: center;
-        overflow: hidden;
+        align-items: stretch;
+        /* Allow content to show fully - no internal scrolling */
+        overflow: visible;
       }
 
-      /* ========== SHARED DIAPORAMA ITEM DISPLAY STYLES ==========
+      /* Left column wrapper - transparent by default (portrait mode), styled in landscape */
+      .slide-left-column {
+        display: contents; /* Acts as if children were direct children of parent */
+      }
+
+      /* ========== SHARED SLIDE ITEM DISPLAY STYLES ==========
          Both Vertical and Horizontal modes display items identically.
          Only navigation differs: Vertical=scroll, Horizontal=buttons/swipe.
          Edit here to change item appearance for BOTH modes.
          ========================================================== */
-      .diaporama-vertical .diaporama-item,
-      .diaporama-horizontal .diaporama-item {
-        /* Center the item both horizontally and vertically in the grid cell */
-        place-self: center;
-        /* Fallback for centering - margin auto works reliably across browsers */
-        margin: auto;
-        /* Item shrinks to fit content */
-        width: fit-content;
-        height: fit-content;
-        min-height: 0;
+      .slide-vertical .slide-item,
+      .slide-horizontal .slide-item {
+        /* Natural flow - no fixed height constraints */
+        margin: 0;
+        width: 100%;
+        height: auto;
         max-width: 100%;
-        max-height: 100%;
+        max-height: none;
       }
 
-      /* Vertical-only: scroll snap for smooth scrolling navigation */
-      .diaporama-vertical .diaporama-item {
-        scroll-snap-align: center;
+      /* Compact layout in landscape: when right column is empty (no Long text Up and no Bottom) */
+      /* Desktop and tablet landscape use auto margins for centering */
+      .slide-horizontal .slide-item.slide-compact,
+      .slide-vertical .slide-item.slide-compact {
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      /* Above picture section */
-      .diaporama-above-picture {
-        position: relative;
-        margin-bottom: 10px;
-        text-align: center;
+      /* Make left column shrink to fit image in compact layout */
+      .slide-horizontal .slide-item.slide-compact .slide-left-column,
+      .slide-vertical .slide-item.slide-compact .slide-left-column {
+        width: fit-content !important;
+        align-items: center; /* Center image and caption */
+      }
+
+      /* Make image wrapper shrink to actual image size in compact layout */
+      .slide-horizontal .slide-item.slide-compact .slide-image-wrapper,
+      .slide-vertical .slide-item.slide-compact .slide-image-wrapper {
+        width: fit-content !important;
+      }
+
+      /* Constrain caption width to match image width in compact layout */
+      .slide-horizontal .slide-item.slide-compact .slide-longtext-down-wrapper,
+      .slide-vertical .slide-item.slide-compact .slide-longtext-down-wrapper {
+        width: auto !important;
+        max-width: 100%;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      /* Vertical mode: items flow naturally with gap between them */
+      .slide-vertical .slide-item {
+        /* No scroll snap - natural document flow */
+      }
+
+      /* ========== SUBID1 ROW: SubId1 + TopCorner Row ========== */
+      .slide-scroll-up-1 {
         flex-shrink: 0;
-        max-height: 25%;
-        overflow-y: auto;
-        width: fit-content;
-        max-width: 100%;
-        align-self: center;
+        /* No max-height - shows full content */
+        width: 100%;
+        margin-bottom: 8px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
       }
 
-      .diaporama-name {
+      /* Empty scroll zones take no space */
+      .slide-scroll-up-1:empty {
+        display: none;
+      }
+
+      /* SubId1 row: SubId1 centered, TopCorner on the right */
+      .slide-subid1-row {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        width: 100%;
+        gap: 10px;
+      }
+
+      /* Spacer to balance TopCorner for centering SubId1 */
+      .slide-subid1-spacer {
+        flex: 0 0 auto;
+        min-width: 0;
+        visibility: hidden;
+      }
+
+      .slide-name {
+        flex: 1 1 auto;
         font-size: 20px;
         font-weight: 700;
         word-wrap: break-word;
@@ -4952,90 +5116,115 @@ DETECTION SYSTEM (working correctly):
         text-align: center;
       }
 
-      .diaporama-topcorner {
-        position: absolute;
-        top: 0;
-        right: 0;
+      .slide-topcorner {
+        flex: 0 0 auto;
         font-size: 14px;
         color: #6b7280;
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: right;
+        white-space: nowrap;
       }
 
-      .diaporama-subid1 {
-        font-size: 14px;
-        color: #6b7280;
-        margin-top: 4px;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
+      /* ========== LONG TEXT UP ========== */
+      .slide-scroll-up-2 {
+        flex-shrink: 0;
+        /* No max-height - shows full content */
+        width: 100%;
         text-align: center;
+        margin-bottom: 4px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
       }
 
-      .diaporama-longtext-up {
-        font-size: 13px;
-        margin-top: 8px;
+      .slide-scroll-up-2:empty {
+        display: none;
+      }
+
+      .slide-longtext-up {
+        font-size: 19.5px; /* 1.5x larger (was 13px) */
         word-wrap: break-word;
         overflow-wrap: break-word;
       }
 
-      /* Image wrapper - adapts to image size, constrained by viewport */
-      .diaporama-image-wrapper {
-        width: auto;
-        margin: 4px 0;
+      /* ========== MAIN IMAGE: Natural Size ========== */
+      .slide-image-wrapper {
+        /* Natural size - no flex-grow, content determines height */
+        flex: 0 0 auto;
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
-        flex: 0 1 auto;
-        overflow: hidden;
+        overflow: visible;
+        margin: 4px 0;
       }
 
-      .diaporama-img {
+      .slide-img {
         width: auto;
         height: auto;
         max-width: 100%;
-        max-height: calc(100dvh - 200px);
+        max-height: 100%;
         object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
       }
 
-      /* Below picture section */
-      .diaporama-below-picture {
-        margin-top: 4px;
-        flex-shrink: 0;
-        overflow-y: auto;
-        max-height: 30%;
-        /* Use full width of card, content left-aligned */
-        width: 100%;
-        max-width: 100%;
-        align-self: stretch;
-        text-align: left;
+      /* ========== IMAGE-ONLY: Equal margins when only main image is present ========== */
+      /* When all other sections are empty, reduce padding to make horizontal equal to vertical */
+      .slide-item:has(.slide-scroll-up-1:empty):has(.slide-scroll-up-2:empty):has(.slide-longtext-down-wrapper:empty):has(.slide-scroll-down-1:empty):has(.slide-scroll-down-2:empty) {
+        padding: 4px;
       }
 
-      .diaporama-subid2 {
-        font-size: 14px;
-        color: #6b7280;
-        margin-bottom: 8px;
+      .slide-item:has(.slide-scroll-up-1:empty):has(.slide-scroll-up-2:empty):has(.slide-longtext-down-wrapper:empty):has(.slide-scroll-down-1:empty):has(.slide-scroll-down-2:empty) .slide-image-wrapper {
+        margin: 0;
+      }
+
+      /* ========== LONG TEXT DOWN: Fixed, NOT Scrollable ========== */
+      .slide-longtext-down-wrapper {
+        flex-shrink: 0;
+        width: 100%;
+        text-align: center;
+        margin-top: 4px;
+      }
+
+      .slide-longtext-down-wrapper:empty {
+        display: none;
+      }
+
+      .slide-longtext-down {
+        font-size: 19.5px; /* 1.5x larger (was 13px) */
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: center;
       }
 
-      .diaporama-two-column {
+      /* ========== BOTTOM SECTION: Two Columns + Bottom ========== */
+      .slide-scroll-down-1 {
+        flex-shrink: 0;
+        /* No max-height - shows full content */
+        width: 100%;
+        margin-top: 4px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
+      }
+
+      .slide-scroll-down-1:empty {
+        display: none;
+      }
+
+      .slide-two-column {
         display: flex;
         flex-direction: row;
         gap: 16px;
-        margin-top: 10px;
       }
 
-      .diaporama-col-left,
-      .diaporama-col-right {
+      .slide-col-left,
+      .slide-col-right {
         flex: 1;
         min-width: 0;
       }
 
-      .diaporama-field {
+      .slide-field {
         margin-bottom: 6px;
         font-size: 13px;
         word-wrap: break-word;
@@ -5043,38 +5232,76 @@ DETECTION SYSTEM (working correctly):
         white-space: normal;
       }
 
-      .diaporama-field-label {
+      .slide-field-label {
         font-weight: 600;
       }
 
-      .diaporama-longtext-down {
-        font-size: 13px;
-        margin-top: 2px;
+      .slide-bottom {
+        font-size: 16.5px; /* 1.5x larger (was 11px) */
+        margin-top: 10px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        width: 100%;
+        text-align: left;
+      }
+
+      /* ========== SUBID2 SECTION ========== */
+      .slide-scroll-down-2 {
+        flex-shrink: 0;
+        /* No max-height - shows full content */
+        width: 100%;
+        text-align: center;
+        margin-top: 4px;
+        /* No internal scrolling - content expands fully */
+        overflow: visible;
+      }
+
+      .slide-scroll-down-2:empty {
+        display: none;
+      }
+
+      .slide-subid2 {
+        font-size: 14px;
+        color: #6b7280;
         word-wrap: break-word;
         overflow-wrap: break-word;
         text-align: center;
       }
 
-      .diaporama-bottom {
-        font-size: 13px;
-        margin-top: 10px;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        /* Full width, content left-aligned */
-        width: 100%;
+      /* SubId2 text items - each on its own line */
+      .slide-subid2-text {
+        display: block;
+        margin-bottom: 2px;
+        word-break: break-word;
         max-width: 100%;
-        align-self: stretch;
-        text-align: left;
+        font-size: 14px;
+        color: #6b7280;
       }
 
-      .diaporama-bottom-text {
+      /* SubId2 links - grouped on same row */
+      .slide-subid2-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 2px;
+        max-width: 100%;
+      }
+
+      .slide-subid2-links .link-pill {
+        max-width: 100%;
+        word-break: break-word;
+        flex-shrink: 1;
+      }
+
+      .slide-bottom-text {
         display: block;
         margin-bottom: 4px;
         word-break: break-word;
         max-width: 100%;
       }
 
-      .diaporama-bottom-links {
+      .slide-bottom-links {
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
@@ -5083,16 +5310,16 @@ DETECTION SYSTEM (working correctly):
         max-width: 100%;
       }
 
-      .diaporama-bottom-links .link-pill {
+      .slide-bottom-links .link-pill {
         max-width: 100%;
         word-break: break-word;
         flex-shrink: 1;
       }
 
-      /* Navigation buttons for horizontal mode */
-      .diaporama-nav {
-        position: absolute;
-        top: 50%;
+      /* Navigation buttons for horizontal mode - floating in middle of viewport */
+      .slide-nav {
+        position: fixed; /* Fixed to viewport - stays in place when scrolling */
+        top: 50vh; /* Center vertically in viewport */
         transform: translateY(-50%);
         background: rgba(0, 0, 0, 0.5);
         color: white;
@@ -5102,38 +5329,39 @@ DETECTION SYSTEM (working correctly):
         border-radius: 50%;
         font-size: 20px;
         cursor: pointer;
-        z-index: 10;
+        z-index: 1000; /* High z-index to float above content */
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.2s ease;
       }
 
-      .diaporama-nav:hover {
+      .slide-nav:hover {
         background: rgba(0, 0, 0, 0.7);
       }
 
-      .diaporama-nav.prev {
+      .slide-nav.prev {
         left: 10px;
       }
 
-      .diaporama-nav.next {
+      .slide-nav.next {
         right: 10px;
       }
 
-      .diaporama-nav.hidden {
+      .slide-nav.hidden {
         display: none;
       }
 
-      /* Diaporama counter */
-      .diaporama-counter {
+      /* Slide counter */
+      .slide-counter {
         text-align: center;
         margin-top: 10px;
         font-size: 14px;
         color: var(--text-soft);
       }
 
-      /* Link pill in diaporama */
-      .diaporama-link-pill {
+      /* Link pill in slide */
+      .slide-link-pill {
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -5147,284 +5375,739 @@ DETECTION SYSTEM (working correctly):
         margin-top: 10px;
       }
 
-      /* ==================== DIAPORAMA - MOBILE LANDSCAPE ==================== */
-      body.mobile-device.landscape .diaporama-name {
+      /* ==================== 6. SLIDE - MOBILE LANDSCAPE ==================== */
+      body.mobile-device.landscape .slide-name {
         font-size: 20px !important;
       }
 
-      body.mobile-device.landscape .diaporama-subid1,
-      body.mobile-device.landscape .diaporama-subid2 {
+      body.mobile-device.landscape .slide-subid1,
+      body.mobile-device.landscape .slide-subid2 {
         font-size: 16px !important;
       }
 
-      body.mobile-device.landscape .diaporama-topcorner {
+      body.mobile-device.landscape .slide-topcorner {
         font-size: 16px !important;
       }
 
-      body.mobile-device.landscape .diaporama-bottom {
-        font-size: 16px !important;
+      body.mobile-device.landscape .slide-bottom {
+        font-size: 12px !important;
       }
 
-      body.mobile-device.landscape .diaporama-field,
-      body.mobile-device.landscape .diaporama-field-label,
-      body.mobile-device.landscape .diaporama-longtext-up,
-      body.mobile-device.landscape .diaporama-longtext-down {
+      body.mobile-device.landscape .slide-field,
+      body.mobile-device.landscape .slide-field-label,
+      body.mobile-device.landscape .slide-longtext-up {
         font-size: 15px !important;
+      }
+
+      body.mobile-device.landscape .slide-longtext-down {
+        font-size: 12px !important; /* Match Bottom font size */
+      }
+
+      /* Compact layout: auto margins for centering in mobile landscape */
+      body.mobile-device.landscape .slide-horizontal .slide-item.slide-compact,
+      body.mobile-device.landscape .slide-vertical .slide-item.slide-compact {
+        width: fit-content !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
       }
 
       /* Hide nav buttons on mobile/tablet - use swipe instead */
-      body.mobile-device .diaporama-nav,
-      body.tablet-device .diaporama-nav {
+      body.mobile-device .slide-nav,
+      body.tablet-device .slide-nav {
         display: none !important;
       }
 
-      /* Mobile/Tablet: Adjust diaporama height for larger headers */
-      body.mobile-device .diaporama-vertical,
-      body.mobile-device .diaporama-horizontal,
-      body.tablet-device .diaporama-vertical,
-      body.tablet-device .diaporama-horizontal {
-        height: calc(100dvh - 180px) !important;
-        max-height: calc(100dvh - 180px) !important;
+      /* Mobile/Tablet: Natural document flow - page scrolls if content exceeds viewport */
+      body.mobile-device .slide-vertical,
+      body.mobile-device .slide-horizontal,
+      body.tablet-device .slide-vertical,
+      body.tablet-device .slide-horizontal {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* Vertical mode: grid rows match container height */
-      body.mobile-device .diaporama-vertical,
-      body.tablet-device .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 180px) !important;
+      /* Vertical mode: natural gap between items */
+      body.mobile-device .slide-vertical,
+      body.tablet-device .slide-vertical {
+        gap: 20px !important;
       }
 
-      /* ========== MOBILE/TABLET: SHARED DIAPORAMA ITEM DISPLAY ==========
-         Both Vertical and Horizontal modes display items identically.
-         Edit here to change item appearance for BOTH modes on mobile/tablet.
+      /* ========== MOBILE/TABLET: SHARED SLIDE ITEM DISPLAY ==========
+         Natural document flow - items expand to show full content.
+         Page scrolls if total content exceeds viewport.
          ================================================================== */
-      body.mobile-device .diaporama-vertical .diaporama-item,
-      body.mobile-device .diaporama-horizontal .diaporama-item,
-      body.tablet-device .diaporama-vertical .diaporama-item,
-      body.tablet-device .diaporama-horizontal .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-      }
-
-      /* Portrait mode: even larger header offset */
-      body.mobile-device.portrait .diaporama-vertical,
-      body.mobile-device.portrait .diaporama-horizontal,
-      body.tablet-device.portrait .diaporama-vertical,
-      body.tablet-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 220px) !important;
-        max-height: calc(100dvh - 220px) !important;
-      }
-
-      /* Portrait vertical mode: grid rows match container height */
-      body.mobile-device.portrait .diaporama-vertical,
-      body.tablet-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 220px) !important;
-      }
-
-      /* Horizontal mode: container matches vertical style - full-sized grid with centering */
-      body.mobile-device .diaporama-horizontal .diaporama-item-container,
-      body.tablet-device .diaporama-horizontal .diaporama-item-container {
-        display: grid !important;
-        place-content: center !important;
-        place-items: center !important;
+      /* Portrait mode only: Natural flow with page scrolling */
+      body.mobile-device.portrait .slide-vertical .slide-item,
+      body.mobile-device.portrait .slide-horizontal .slide-item,
+      body.tablet-device.portrait .slide-vertical .slide-item,
+      body.tablet-device.portrait .slide-horizontal .slide-item {
+        margin: 0 !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+        gap: 8px !important; /* Consistent gap X between all child sections */
       }
 
-      /* ==================== DIAPORAMA - TABLET LANDSCAPE ==================== */
-      body.tablet-device.landscape .diaporama-name {
+      /* Portrait mode: same natural flow behavior */
+      body.mobile-device.portrait .slide-vertical,
+      body.mobile-device.portrait .slide-horizontal,
+      body.tablet-device.portrait .slide-vertical,
+      body.tablet-device.portrait .slide-horizontal {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      /* Portrait vertical mode: natural gap */
+      body.mobile-device.portrait .slide-vertical,
+      body.tablet-device.portrait .slide-vertical {
+        gap: 20px !important;
+      }
+
+      /* Horizontal mode: container with natural flow - PORTRAIT ONLY (landscape uses centering for compact) */
+      body.mobile-device.portrait .slide-horizontal .slide-item-container,
+      body.mobile-device.portrait .slide-vertical .slide-item-container,
+      body.tablet-device.portrait .slide-horizontal .slide-item-container,
+      body.tablet-device.portrait .slide-vertical .slide-item-container {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: none !important;
+      }
+
+      /* LANDSCAPE: Center compact items in vertical slide container */
+      body.mobile-device.landscape .slide-vertical:has(.slide-item.slide-compact),
+      body.tablet-device.landscape .slide-vertical:has(.slide-item.slide-compact) {
+        align-items: center !important;
+      }
+
+      /* LANDSCAPE: Center compact items horizontally (mobile and tablet) */
+      body.mobile-device.landscape .slide-horizontal:has(.slide-item.slide-compact) .slide-item-container,
+      body.mobile-device.landscape .slide-vertical:has(.slide-item.slide-compact) .slide-item-container,
+      body.tablet-device.landscape .slide-horizontal:has(.slide-item.slide-compact) .slide-item-container,
+      body.tablet-device.landscape .slide-vertical:has(.slide-item.slide-compact) .slide-item-container {
+        align-items: center !important;
+      }
+
+      /* ==================== 3. SLIDE - TABLET LANDSCAPE ==================== */
+      body.tablet-device.landscape .slide-name {
         font-size: 23px !important;
       }
 
-      body.tablet-device.landscape .diaporama-subid1,
-      body.tablet-device.landscape .diaporama-subid2 {
+      body.tablet-device.landscape .slide-subid1,
+      body.tablet-device.landscape .slide-subid2 {
         font-size: 18px !important;
       }
 
-      body.tablet-device.landscape .diaporama-topcorner {
+      body.tablet-device.landscape .slide-topcorner {
         font-size: 17px !important;
       }
 
-      body.tablet-device.landscape .diaporama-bottom {
-        font-size: 17px !important;
+      body.tablet-device.landscape .slide-bottom {
+        font-size: 18px !important; /* 1.5x larger (was 12px) */
       }
 
-      body.tablet-device.landscape .diaporama-field,
-      body.tablet-device.landscape .diaporama-field-label,
-      body.tablet-device.landscape .diaporama-longtext-up,
-      body.tablet-device.landscape .diaporama-longtext-down {
-        font-size: 15px !important;
+      body.tablet-device.landscape .slide-field,
+      body.tablet-device.landscape .slide-field-label,
+      body.tablet-device.landscape .slide-longtext-up {
+        font-size: 22.5px !important; /* 1.5x larger (was 15px) */
       }
 
-      /* ==================== DIAPORAMA - MOBILE PORTRAIT ==================== */
-      body.mobile-device.portrait .diaporama-name {
+      body.tablet-device.landscape .slide-longtext-down {
+        font-size: 18px !important; /* 1.5x larger (was 12px) */
+      }
+
+      /* Ensure compact layout resizes on tablet landscape */
+      body.tablet-device.landscape .slide-horizontal .slide-item.slide-compact,
+      body.tablet-device.landscape .slide-vertical .slide-item.slide-compact {
+        width: fit-content !important;
+      }
+
+      /* ==================== NEW: SLIDE - LANDSCAPE TWO-COLUMN LAYOUT (All Devices + Desktop) ====================
+         Layout Structure (3-row grid with left-column wrapper):
+         ┌──────────────────────────────────────────────────────────────┐
+         │          SubId1 (CENTERED)                      Top Corner   │ ← Row 1: scroll-up-1 (full width)
+         ├──────────────────────────────────┬───────────────────────────┤
+         │    LEFT COLUMN                   ║    RIGHT COLUMN           │ ← Row 2: left-column | right-column
+         │    ┌────────────────────────┐    ║    ┌───────────────────┐  │    ║ = 10px separator border
+         │    │  Main Image            │    ║    │  Long text Up     │  │
+         │    │                        │    ║    │  (flex-grow)      │  │
+         │    └────────────────────────┘    ║    ├───────────────────┤  │
+         │    Long text Down (caption)      ║    │  Bottom           │  │
+         │                                  ║    └───────────────────┘  │
+         ├──────────────────────────────────┴───────────────────────────┤
+         │ SubId2 (left aligned)                                        │ ← Row 3: scroll-down-2 (full width)
+         └──────────────────────────────────────────────────────────────┘
+
+         Grid: 2 columns (1fr, minmax(150px, 50%)), 3 rows (auto, 1fr, auto)
+         Left column wrapper (.slide-left-column) contains image + caption as a flex column
+         Right column wrapper (.slide-right-column) scrolls when content exceeds left column height
+         If no image: right content takes full width, no separator
+         If no right content: left column takes full width
+         ================================================================================================ */
+
+      /* Base landscape grid layout for slide-item */
+      /* 3-row grid: Header | Left+Right Columns | Footer */
+      /* Constrained to viewport so right column can scroll when content exceeds left column height */
+      body.mobile-device.landscape .slide-item,
+      body.tablet-device.landscape .slide-item,
+      body.desktop-device .slide-item {
+        display: grid !important;
+        grid-template-columns: 1fr minmax(150px, 50%);
+        grid-template-rows: auto minmax(0, 1fr) auto; /* minmax(0, 1fr) allows row to shrink */
+        gap: 8px;
+        align-items: stretch;
+        max-height: calc(100vh - 40px); /* Constrain to viewport with padding */
+        overflow: hidden; /* Contain overflow so right column scrolls */
+      }
+
+      /* CRITICAL FIX: Disable grid layout for compact items (no right column content)
+         This allows proper centering and natural resizing to image width */
+      body.mobile-device.landscape .slide-item.slide-compact,
+      body.tablet-device.landscape .slide-item.slide-compact,
+      body.desktop-device .slide-item.slide-compact {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: unset !important;
+        grid-template-rows: unset !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      /* When no right column content exists, left column takes full width */
+      body.mobile-device.landscape .slide-item:not(:has(.slide-scroll-up-2)):not(:has(.slide-scroll-down-1)),
+      body.tablet-device.landscape .slide-item:not(:has(.slide-scroll-up-2)):not(:has(.slide-scroll-down-1)),
+      body.desktop-device .slide-item:not(:has(.slide-scroll-up-2)):not(:has(.slide-scroll-down-1)) {
+        grid-template-columns: 1fr;
+      }
+
+      /* When no image (empty data-image-url), right content takes full width (all devices and orientations) */
+      body.mobile-device.portrait .slide-item:has(.slide-image-wrapper[data-image-url=""]),
+      body.mobile-device.landscape .slide-item:has(.slide-image-wrapper[data-image-url=""]),
+      body.tablet-device.portrait .slide-item:has(.slide-image-wrapper[data-image-url=""]),
+      body.tablet-device.landscape .slide-item:has(.slide-image-wrapper[data-image-url=""]),
+      body.desktop-device .slide-item:has(.slide-image-wrapper[data-image-url=""]) {
+        grid-template-columns: 1fr;
+      }
+
+      /* Header (SubId1 + TopCorner) - full width, row 1 */
+      body.mobile-device.landscape .slide-scroll-up-1,
+      body.tablet-device.landscape .slide-scroll-up-1,
+      body.desktop-device .slide-scroll-up-1 {
+        grid-column: 1 / -1;
+        grid-row: 1;
+      }
+
+      /* Left column wrapper - contains image and caption as a flex column */
+      body.mobile-device.landscape .slide-left-column,
+      body.tablet-device.landscape .slide-left-column,
+      body.desktop-device .slide-left-column {
+        grid-column: 1;
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0; /* Allow flex children to shrink */
+      }
+
+      /* For compact items, left-column uses display: contents (becomes transparent) */
+      body.mobile-device.landscape .slide-item.slide-compact .slide-left-column,
+      body.tablet-device.landscape .slide-item.slide-compact .slide-left-column,
+      body.desktop-device .slide-item.slide-compact .slide-left-column {
+        display: contents !important;
+        grid-column: unset !important;
+        grid-row: unset !important;
+      }
+
+      /* When no right column, left column spans full width */
+      body.mobile-device.landscape .slide-item:not(:has(.slide-scroll-up-2)):not(:has(.slide-scroll-down-1)) .slide-left-column,
+      body.tablet-device.landscape .slide-item:not(:has(.slide-scroll-up-2)):not(:has(.slide-scroll-down-1)) .slide-left-column,
+      body.desktop-device .slide-item:not(:has(.slide-scroll-up-2)):not(:has(.slide-scroll-down-1)) .slide-left-column {
+        grid-column: 1 / -1;
+      }
+
+      /* Image - inside left column, natural size (no grow, allows caption directly below) */
+      body.mobile-device.landscape .slide-image-wrapper,
+      body.tablet-device.landscape .slide-image-wrapper,
+      body.desktop-device .slide-image-wrapper {
+        flex: 0 1 auto; /* Don't grow - keeps caption directly under image */
+        min-height: 0;
+        margin: 0 !important;
+      }
+
+      /* When no image, hide the placeholder wrapper (all devices and orientations) */
+      body.mobile-device.portrait .slide-image-wrapper[data-image-url=""],
+      body.mobile-device.landscape .slide-image-wrapper[data-image-url=""],
+      body.tablet-device.portrait .slide-image-wrapper[data-image-url=""],
+      body.tablet-device.landscape .slide-image-wrapper[data-image-url=""],
+      body.desktop-device .slide-image-wrapper[data-image-url=""] {
+        display: none !important;
+      }
+
+      /* Caption (Long text Down) - inside left column, fixed at bottom */
+      body.mobile-device.landscape .slide-longtext-down-wrapper,
+      body.tablet-device.landscape .slide-longtext-down-wrapper,
+      body.desktop-device .slide-longtext-down-wrapper {
+        flex: 0 0 auto;
+        text-align: center;
+        margin: 0 !important;
+      }
+
+      body.desktop-device .slide-longtext-down {
+        font-size: 16.5px; /* 1.5x larger (was 11px) */
+      }
+
+      /* Ensure compact layout resizes on desktop */
+      body.desktop-device .slide-horizontal .slide-item.slide-compact,
+      body.desktop-device .slide-vertical .slide-item.slide-compact {
+        width: fit-content !important;
+      }
+
+      /* Right column wrapper - contains scroll-up-2 and scroll-down-1, scrolls when content exceeds left column height */
+      /* Has 10px separator border */
+      body.mobile-device.landscape .slide-right-column,
+      body.tablet-device.landscape .slide-right-column,
+      body.desktop-device .slide-right-column {
+        grid-column: 2;
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-left: 10px solid #e5e7eb; /* 10px separator line */
+        padding-left: 16px;
+        overflow-y: auto;
+        text-align: left;
+        margin: 0 !important;
+        min-height: 0; /* Required for overflow to work in grid */
+        max-height: 100%; /* Constrain to grid cell height so it doesn't exceed left column */
+      }
+
+      /* When no image, right column spans full width and removes separator (all devices and orientations) */
+      body.mobile-device.portrait .slide-item:has(.slide-image-wrapper[data-image-url=""]) .slide-right-column,
+      body.mobile-device.landscape .slide-item:has(.slide-image-wrapper[data-image-url=""]) .slide-right-column,
+      body.tablet-device.portrait .slide-item:has(.slide-image-wrapper[data-image-url=""]) .slide-right-column,
+      body.tablet-device.landscape .slide-item:has(.slide-image-wrapper[data-image-url=""]) .slide-right-column,
+      body.desktop-device .slide-item:has(.slide-image-wrapper[data-image-url=""]) .slide-right-column {
+        grid-column: 1 / -1;
+        border-left: none;
+        padding-left: 0;
+      }
+
+      /* Long text Up - inside right column wrapper, grows to fill space */
+      body.mobile-device.landscape .slide-scroll-up-2,
+      body.tablet-device.landscape .slide-scroll-up-2,
+      body.desktop-device .slide-scroll-up-2 {
+        flex: 1 1 auto;
+        max-height: none;
+        overflow: visible;
+        text-align: left;
+        margin: 0 !important;
+      }
+
+      /* Bottom - inside right column wrapper, fixed at bottom */
+      body.mobile-device.landscape .slide-scroll-down-1,
+      body.tablet-device.landscape .slide-scroll-down-1,
+      body.desktop-device .slide-scroll-down-1 {
+        flex: 0 0 auto;
+        max-height: none;
+        overflow: visible;
+        text-align: left;
+        margin: 0 !important;
+      }
+
+      /* Footer (SubId2) - full width, row 3, LEFT aligned (not centered) */
+      body.mobile-device.landscape .slide-scroll-down-2,
+      body.tablet-device.landscape .slide-scroll-down-2,
+      body.desktop-device .slide-scroll-down-2 {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        text-align: left;
+      }
+
+      /* ==================== 4. SLIDE - MOBILE PORTRAIT (Apps Script) ==================== */
+      body.mobile-device.portrait .slide-view {
+        margin-top: -8px !important; /* Override .grid margin-top to control slide gap */
+      }
+
+      body.mobile-device.portrait .slide-name {
         font-size: 37.5px !important;
       }
 
-      body.mobile-device.portrait .diaporama-subid1,
-      body.mobile-device.portrait .diaporama-subid2 {
+      body.mobile-device.portrait .slide-subid1,
+      body.mobile-device.portrait .slide-subid2 {
         font-size: 31.25px !important;
       }
 
-      body.mobile-device.portrait .diaporama-topcorner {
+      body.mobile-device.portrait .slide-topcorner {
         font-size: 31.25px !important;
       }
 
-      body.mobile-device.portrait .diaporama-bottom {
+      body.mobile-device.portrait .slide-bottom {
         font-size: 25px !important;
+        text-align: left !important;
       }
 
-      body.mobile-device.portrait .diaporama-field,
-      body.mobile-device.portrait .diaporama-field-label,
-      body.mobile-device.portrait .diaporama-longtext-up,
-      body.mobile-device.portrait .diaporama-longtext-down {
+      body.mobile-device.portrait .slide-bottom-text {
+        text-align: left !important;
+      }
+
+      body.mobile-device.portrait .slide-scroll-up-2,
+      body.mobile-device.portrait .slide-longtext-up {
+        text-align: left !important;
+      }
+
+      /* Portrait mode: Use CSS order to arrange vertical flow correctly */
+      body.mobile-device.portrait .slide-right-column {
+        display: contents !important; /* Collapse wrapper so children become direct flex items */
+      }
+
+      body.mobile-device.portrait .slide-scroll-up-1 {
+        order: 1; /* SubId1 + TopCorner */
+      }
+
+      body.mobile-device.portrait .slide-scroll-up-2 {
+        order: 2; /* Long text Up - above image */
+      }
+
+      body.mobile-device.portrait .slide-image-wrapper {
+        order: 3; /* Image */
+      }
+
+      body.mobile-device.portrait .slide-longtext-down-wrapper {
+        order: 4; /* Long text Down (caption) */
+      }
+
+      body.mobile-device.portrait .slide-scroll-down-1 {
+        order: 5; /* Bottom */
+      }
+
+      body.mobile-device.portrait .slide-scroll-down-2 {
+        order: 6; /* SubId2 */
+      }
+
+      body.mobile-device.portrait .slide-field,
+      body.mobile-device.portrait .slide-field-label,
+      body.mobile-device.portrait .slide-longtext-up,
+      body.mobile-device.portrait .slide-longtext-down {
         font-size: 27.5px !important;
       }
 
-      body.mobile-device.portrait .diaporama-link-pill {
+      body.mobile-device.portrait .slide-link-pill {
         font-size: 25px !important;
         padding: 8px 16px !important;
       }
 
-      body.mobile-device.portrait .diaporama-counter {
+      body.mobile-device.portrait .slide-counter {
         font-size: 25px !important;
       }
 
-      /* ==================== DIAPORAMA - TABLET PORTRAIT ==================== */
-      body.tablet-device.portrait .diaporama-name {
+      /* Mobile Portrait: Disable compact layout - all items must be 100% width */
+      body.mobile-device.portrait .slide-vertical .slide-item.slide-compact,
+      body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      body.mobile-device.portrait .slide-vertical .slide-item.slide-compact .slide-left-column,
+      body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact .slide-left-column {
+        width: 100% !important;
+        align-items: stretch !important;
+      }
+
+      body.mobile-device.portrait .slide-vertical .slide-item.slide-compact .slide-image-wrapper,
+      body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact .slide-image-wrapper {
+        width: 100% !important;
+      }
+
+      body.mobile-device.portrait .slide-vertical .slide-item.slide-compact .slide-longtext-down-wrapper,
+      body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact .slide-longtext-down-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      /* ==================== 2. SLIDE - TABLET PORTRAIT ==================== */
+      body.tablet-device.portrait .slide-name {
         font-size: 30px !important;
       }
 
-      body.tablet-device.portrait .diaporama-subid1,
-      body.tablet-device.portrait .diaporama-subid2 {
+      body.tablet-device.portrait .slide-subid1,
+      body.tablet-device.portrait .slide-subid2 {
         font-size: 25px !important;
       }
 
-      body.tablet-device.portrait .diaporama-topcorner {
+      body.tablet-device.portrait .slide-topcorner {
         font-size: 25px !important;
       }
 
-      body.tablet-device.portrait .diaporama-bottom {
-        font-size: 25px !important;
+      body.tablet-device.portrait .slide-bottom {
+        font-size: 37.5px !important; /* 1.5x larger (was 25px) */
+        text-align: left !important;
       }
 
-      body.tablet-device.portrait .diaporama-field,
-      body.tablet-device.portrait .diaporama-field-label,
-      body.tablet-device.portrait .diaporama-longtext-up,
-      body.tablet-device.portrait .diaporama-longtext-down {
-        font-size: 22px !important;
+      body.tablet-device.portrait .slide-bottom-text {
+        text-align: left !important;
       }
 
-      body.tablet-device.portrait .diaporama-link-pill {
+      body.tablet-device.portrait .slide-scroll-up-2,
+      body.tablet-device.portrait .slide-longtext-up {
+        text-align: left !important;
+      }
+
+      /* Portrait mode: Use CSS order to arrange vertical flow correctly */
+      body.tablet-device.portrait .slide-right-column {
+        display: contents !important; /* Collapse wrapper so children become direct flex items */
+      }
+
+      body.tablet-device.portrait .slide-scroll-up-1 {
+        order: 1; /* SubId1 + TopCorner */
+      }
+
+      body.tablet-device.portrait .slide-scroll-up-2 {
+        order: 2; /* Long text Up - above image */
+      }
+
+      body.tablet-device.portrait .slide-image-wrapper {
+        order: 3; /* Image */
+      }
+
+      body.tablet-device.portrait .slide-longtext-down-wrapper {
+        order: 4; /* Long text Down (caption) */
+      }
+
+      body.tablet-device.portrait .slide-scroll-down-1 {
+        order: 5; /* Bottom */
+      }
+
+      body.tablet-device.portrait .slide-scroll-down-2 {
+        order: 6; /* SubId2 */
+      }
+
+      body.tablet-device.portrait .slide-field,
+      body.tablet-device.portrait .slide-field-label,
+      body.tablet-device.portrait .slide-longtext-up,
+      body.tablet-device.portrait .slide-longtext-down {
+        font-size: 33px !important; /* 1.5x larger (was 22px) */
+      }
+
+      body.tablet-device.portrait .slide-link-pill {
         font-size: 20px !important;
         padding: 7px 14px !important;
       }
 
-      body.tablet-device.portrait .diaporama-counter {
+      body.tablet-device.portrait .slide-counter {
         font-size: 20px !important;
       }
 
-      /* ==================== DIAPORAMA - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
-      html.github-pages body.mobile-device.portrait .diaporama-name {
+      /* Tablet Portrait: Disable compact layout - all items must be 100% width */
+      body.tablet-device.portrait .slide-vertical .slide-item.slide-compact,
+      body.tablet-device.portrait .slide-horizontal .slide-item.slide-compact {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      body.tablet-device.portrait .slide-vertical .slide-item.slide-compact .slide-left-column,
+      body.tablet-device.portrait .slide-horizontal .slide-item.slide-compact .slide-left-column {
+        width: 100% !important;
+        align-items: stretch !important;
+      }
+
+      body.tablet-device.portrait .slide-vertical .slide-item.slide-compact .slide-image-wrapper,
+      body.tablet-device.portrait .slide-horizontal .slide-item.slide-compact .slide-image-wrapper {
+        width: 100% !important;
+      }
+
+      body.tablet-device.portrait .slide-vertical .slide-item.slide-compact .slide-longtext-down-wrapper,
+      body.tablet-device.portrait .slide-horizontal .slide-item.slide-compact .slide-longtext-down-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      /* ==================== 5. SLIDE - GITHUB PAGES MOBILE PORTRAIT (50% scaled) ==================== */
+      html.github-pages body.mobile-device.portrait .slide-view {
+        margin-top: -14px !important; /* Override .grid margin-top to control slide gap */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-name {
         font-size: 18.75px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-subid1,
-      html.github-pages body.mobile-device.portrait .diaporama-subid2 {
+      html.github-pages body.mobile-device.portrait .slide-subid1,
+      html.github-pages body.mobile-device.portrait .slide-subid2 {
         font-size: 15.625px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-topcorner {
+      html.github-pages body.mobile-device.portrait .slide-topcorner {
         font-size: 15.625px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-bottom {
+      html.github-pages body.mobile-device.portrait .slide-bottom {
         font-size: 12.5px !important;
+        text-align: left !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-field,
-      html.github-pages body.mobile-device.portrait .diaporama-field-label,
-      html.github-pages body.mobile-device.portrait .diaporama-longtext-up,
-      html.github-pages body.mobile-device.portrait .diaporama-longtext-down {
+      html.github-pages body.mobile-device.portrait .slide-bottom-text {
+        text-align: left !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-scroll-up-2,
+      html.github-pages body.mobile-device.portrait .slide-longtext-up {
+        text-align: left !important;
+      }
+
+      /* Portrait mode: Use CSS order to arrange vertical flow correctly */
+      html.github-pages body.mobile-device.portrait .slide-right-column {
+        display: contents !important; /* Collapse wrapper so children become direct flex items */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-scroll-up-1 {
+        order: 1; /* SubId1 + TopCorner */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-scroll-up-2 {
+        order: 2; /* Long text Up - above image */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-image-wrapper {
+        order: 3; /* Image */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-longtext-down-wrapper {
+        order: 4; /* Long text Down (caption) */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-scroll-down-1 {
+        order: 5; /* Bottom */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-scroll-down-2 {
+        order: 6; /* SubId2 */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-field,
+      html.github-pages body.mobile-device.portrait .slide-field-label,
+      html.github-pages body.mobile-device.portrait .slide-longtext-up,
+      html.github-pages body.mobile-device.portrait .slide-longtext-down {
         font-size: 13.75px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-link-pill {
+      html.github-pages body.mobile-device.portrait .slide-link-pill {
         font-size: 12px !important;
         padding: 5px 9px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-counter {
+      html.github-pages body.mobile-device.portrait .slide-subid2-text {
+        margin-bottom: 1px !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-subid2-links {
+        margin-bottom: 1px !important;
+        column-gap: 4px !important;  /* horizontal gap between pills */
+        row-gap: 2px !important;     /* vertical gap when wrapping to new line */
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-counter {
         font-size: 12px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-item {
+      html.github-pages body.mobile-device.portrait .slide-item {
         padding: 8px !important;
       }
 
-      html.github-pages body.mobile-device.portrait .diaporama-view {
+      html.github-pages body.mobile-device.portrait .slide-view {
         padding: 5px !important;
       }
 
-      /* GitHub Pages Mobile Portrait: Diaporama height - compact header + tight padding */
-      html.github-pages body.mobile-device.portrait .diaporama-vertical,
-      html.github-pages body.mobile-device.portrait .diaporama-horizontal {
-        height: calc(100dvh - 38px) !important;
-        max-height: calc(100dvh - 38px) !important;
+      /* GitHub Pages Mobile Portrait: Natural document flow - page scrolls if content exceeds viewport */
+      html.github-pages body.mobile-device.portrait .slide-vertical,
+      html.github-pages body.mobile-device.portrait .slide-horizontal {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
 
-      /* GitHub Pages vertical mode: grid rows match container height */
-      html.github-pages body.mobile-device.portrait .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 38px) !important;
+      /* GitHub Pages vertical mode: natural gap between items */
+      html.github-pages body.mobile-device.portrait .slide-vertical {
+        gap: 20px !important;
       }
 
-      /* ========== GITHUB PAGES: SHARED DIAPORAMA ITEM DISPLAY ==========
-         Both Vertical and Horizontal modes display items identically.
-         Edit here to change item appearance for BOTH modes on GitHub Pages.
+      /* ========== GITHUB PAGES: SHARED SLIDE ITEM DISPLAY ==========
+         Natural document flow - items expand to show full content.
+         Page scrolls if total content exceeds viewport.
          ================================================================= */
-      html.github-pages body.mobile-device.portrait .diaporama-vertical .diaporama-item,
-      html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item {
-        place-self: center !important;
-        margin: auto !important;
-        width: fit-content !important;
-        height: fit-content !important;
-        min-height: 0 !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-      }
-
-      /* GitHub Pages Horizontal mode: container matches vertical style */
-      html.github-pages body.mobile-device.portrait .diaporama-horizontal .diaporama-item-container {
-        display: grid !important;
-        place-content: center !important;
-        place-items: center !important;
+      html.github-pages body.mobile-device.portrait .slide-vertical .slide-item,
+      html.github-pages body.mobile-device.portrait .slide-horizontal .slide-item {
+        margin: 0 !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         max-width: 100% !important;
-        max-height: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+        gap: 4px !important; /* Consistent gap X between all child sections (50% scaled) */
       }
 
-      /* Mobile/Tablet LANDSCAPE: Smaller offset since headers are compact */
-      body.mobile-device.landscape .diaporama-vertical,
-      body.mobile-device.landscape .diaporama-horizontal,
-      body.tablet-device.landscape .diaporama-vertical,
-      body.tablet-device.landscape .diaporama-horizontal {
-        height: calc(100dvh - 100px) !important;
-        max-height: calc(100dvh - 100px) !important;
+      /* GitHub Pages Horizontal mode: container with natural flow - no centering */
+      html.github-pages body.mobile-device.portrait .slide-horizontal .slide-item-container {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: none !important;
       }
 
-      /* Landscape vertical mode: grid rows match container height */
-      body.mobile-device.landscape .diaporama-vertical,
-      body.tablet-device.landscape .diaporama-vertical {
-        grid-auto-rows: calc(100dvh - 100px) !important;
+      /* GitHub Pages Mobile Portrait: Set margin between SubId1 and Long text Up to 4px */
+      html.github-pages body.mobile-device.portrait .slide-scroll-up-1 {
+        margin-bottom: 4px !important;
       }
-      /* NOTE: Landscape item centering is handled by the shared mobile/tablet rules above */
+
+      /* GitHub Pages Mobile Portrait: Disable compact layout - all items must be 100% width */
+      html.github-pages body.mobile-device.portrait .slide-vertical .slide-item.slide-compact,
+      html.github-pages body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-vertical .slide-item.slide-compact .slide-left-column,
+      html.github-pages body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact .slide-left-column {
+        width: 100% !important;
+        align-items: stretch !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-vertical .slide-item.slide-compact .slide-image-wrapper,
+      html.github-pages body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact .slide-image-wrapper {
+        width: 100% !important;
+      }
+
+      html.github-pages body.mobile-device.portrait .slide-vertical .slide-item.slide-compact .slide-longtext-down-wrapper,
+      html.github-pages body.mobile-device.portrait .slide-horizontal .slide-item.slide-compact .slide-longtext-down-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      /* Mobile/Tablet LANDSCAPE: Natural document flow - page scrolls if content exceeds viewport */
+      body.mobile-device.landscape .slide-vertical,
+      body.mobile-device.landscape .slide-horizontal,
+      body.tablet-device.landscape .slide-vertical,
+      body.tablet-device.landscape .slide-horizontal {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      /* Landscape vertical mode: natural gap between items */
+      body.mobile-device.landscape .slide-vertical,
+      body.tablet-device.landscape .slide-vertical {
+        gap: 20px !important;
+      }
+      /* NOTE: Landscape natural flow is handled by the shared mobile/tablet rules above */
 
     </style>
 
@@ -5457,7 +6140,7 @@ DETECTION SYSTEM (working correctly):
     <!-- Loading Screen Overlay -->
     <div id="loadingScreen" class="loading-screen">
       <div class="loading-content">
-        <div id="loadingText" class="loading-text">Patience discipline young Padawan !</div>
+        <div id="loadingText" class="loading-text">Loading !</div>
         <div class="loading-spinner-container">
           <div class="loading-spinner"></div>
         </div>
@@ -5720,7 +6403,7 @@ DETECTION SYSTEM (working correctly):
           <img id="imgOverlayImg" alt="Full size">
         </div>
         <button id="imgOverlayClose">✕</button>
-        <!-- Navigation buttons for diaporama mode -->
+        <!-- Navigation buttons for slide mode -->
         <button id="imgOverlayPrev" class="img-overlay-nav img-overlay-prev" style="display: none;">&lt;</button>
         <button id="imgOverlayNext" class="img-overlay-nav img-overlay-next" style="display: none;">&gt;</button>
       </div>
@@ -6192,7 +6875,7 @@ DETECTION SYSTEM (working correctly):
       function normalizeViewType(viewValue) {
         if (!viewValue) return 'cards';
         const normalized = String(viewValue).toLowerCase();
-        if (normalized === 'cards' || normalized === 'list' || normalized === 'table' || normalized === 'diaporama') {
+        if (normalized === 'cards' || normalized === 'list' || normalized === 'table' || normalized === 'slide') {
           return normalized;
         }
         return 'cards'; // Default fallback for invalid values
@@ -6205,7 +6888,7 @@ DETECTION SYSTEM (working correctly):
           if (viewType === 'cards') return 'Squared';
           if (viewType === 'list') return 'Simple';
           if (viewType === 'table') return 'Normal';
-          if (viewType === 'diaporama') return 'Vertical';
+          if (viewType === 'slide') return 'Vertical';
           return 'Squared';
         }
 
@@ -6214,7 +6897,7 @@ DETECTION SYSTEM (working correctly):
           'cards': ['Squared', 'Rectangle', 'Circle'],
           'list': ['Simple', 'Double', 'Triple'],
           'table': ['Normal', 'Open Detail View', 'No Detail View'],
-          'diaporama': ['Vertical', 'Horizontal']
+          'slide': ['Vertical', 'Horizontal']
         };
 
         const allowed = validStyles[viewType] || [];
@@ -6229,7 +6912,7 @@ DETECTION SYSTEM (working correctly):
         if (viewType === 'cards') return 'Squared';
         if (viewType === 'list') return 'Simple';
         if (viewType === 'table') return 'Normal';
-        if (viewType === 'diaporama') return 'Vertical';
+        if (viewType === 'slide') return 'Vertical';
         return 'Squared';
       }
 
@@ -7249,8 +7932,8 @@ DETECTION SYSTEM (working correctly):
           renderListView(items, grid);
         } else if (viewType === 'table') {
           renderTableView(items, grid);
-        } else if (viewType === 'diaporama') {
-          renderDiaporamaView(items, grid);
+        } else if (viewType === 'slide') {
+          renderSlideView(items, grid);
         } else {
           // Default to cards view
           renderCardsView(items, grid);
@@ -7263,7 +7946,7 @@ DETECTION SYSTEM (working correctly):
       // Render Cards View (current default grid layout)
       function renderCardsView(items, grid) {
         grid.classList.add('grid');
-        grid.classList.remove('list-view', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
+        grid.classList.remove('list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
 
         // Get style for main items
         const style = getMainStyle();
@@ -7351,7 +8034,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render List View (vertical list with image left, details right)
       function renderListView(items, grid) {
-        grid.classList.remove('grid', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
+        grid.classList.remove('grid', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
         grid.classList.add('list-view');
 
         // Get style for main items
@@ -7432,7 +8115,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render Table View (spreadsheet-style)
       function renderTableView(items, grid) {
-        grid.classList.remove('grid', 'list-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
+        grid.classList.remove('grid', 'list-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
         grid.classList.add('table-view');
 
         // Get style for main items
@@ -7727,58 +8410,58 @@ DETECTION SYSTEM (working correctly):
         }
       }
 
-      // Render Diaporama View for Main items (slideshow-style view)
+      // Render Slide View for Main items (slideshow-style view)
       // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
-      function renderDiaporamaView(items, grid) {
+      function renderSlideView(items, grid) {
         grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
-        grid.classList.add('diaporama-view');
+        grid.classList.add('slide-view');
 
         const style = getMainStyle();
         const isHorizontal = style === 'Horizontal';
 
         // Store items for navigation (used by horizontal style)
-        currentDiaporamaItems = items;
-        currentDiaporamaIndex = 0;
-        currentDiaporamaLayerIndex = -1; // -1 indicates Main view (not a layer)
+        currentSlideItems = items;
+        currentSlideIndex = 0;
+        currentSlideLayerIndex = -1; // -1 indicates Main view (not a layer)
 
         if (isHorizontal) {
-          grid.classList.add('diaporama-horizontal');
-          grid.classList.remove('diaporama-vertical');
-          renderMainDiaporamaHorizontal(items, grid);
+          grid.classList.add('slide-horizontal');
+          grid.classList.remove('slide-vertical');
+          renderMainSlideHorizontal(items, grid);
         } else {
           // Vertical - render all items stacked
-          grid.classList.add('diaporama-vertical');
-          grid.classList.remove('diaporama-horizontal');
-          renderMainDiaporamaVertical(items, grid);
+          grid.classList.add('slide-vertical');
+          grid.classList.remove('slide-horizontal');
+          renderMainSlideVertical(items, grid);
         }
       }
 
-      // Render all diaporama items vertically for Main view (scrollable)
-      function renderMainDiaporamaVertical(items, grid) {
+      // Render all slide items vertically for Main view (scrollable)
+      function renderMainSlideVertical(items, grid) {
         grid.innerHTML = '';
 
         for (let i = 0; i < items.length; i++) {
-          const itemHtml = buildMainDiaporamaItemHtml(items[i], i);
+          const itemHtml = buildMainSlideItemHtml(items[i], i);
           grid.innerHTML += itemHtml;
         }
 
         // After rendering, load first visible image immediately
         setTimeout(() => {
-          setupDiaporamaImages(grid);
+          setupSlideImages(grid);
         }, 0);
 
         // Start background preloading with priority on adjacent items (-1 = main view)
-        startDiaporamaPreloading(items, 0, -1);
+        startSlidePreloading(items, 0, -1);
       }
 
-      // Render horizontal diaporama for Main view (one item at a time with navigation)
-      function renderMainDiaporamaHorizontal(items, grid) {
+      // Render horizontal slide for Main view (one item at a time with navigation)
+      function renderMainSlideHorizontal(items, grid) {
         grid.innerHTML = '';
 
         // Create container for the single visible item
         const itemContainer = document.createElement('div');
-        itemContainer.id = 'diaporamaItemContainer';
-        itemContainer.className = 'diaporama-item-container';
+        itemContainer.id = 'slideItemContainer';
+        itemContainer.className = 'slide-item-container';
         grid.appendChild(itemContainer);
 
         // Add navigation buttons for desktop
@@ -7788,36 +8471,36 @@ DETECTION SYSTEM (working correctly):
         if (!isMobileOrTablet) {
           // Desktop: add nav buttons
           const prevBtn = document.createElement('button');
-          prevBtn.id = 'diaporamaPrevBtn';
-          prevBtn.className = 'nav-arrow-btn nav-arrow-left diaporama-nav';
+          prevBtn.id = 'slidePrevBtn';
+          prevBtn.className = 'nav-arrow-btn nav-arrow-left slide-nav';
           prevBtn.innerHTML = '&lt;';
-          prevBtn.onclick = () => navigateMainDiaporama(-1);
+          prevBtn.onclick = () => navigateMainSlide(-1);
           grid.appendChild(prevBtn);
 
           const nextBtn = document.createElement('button');
-          nextBtn.id = 'diaporamaNextBtn';
-          nextBtn.className = 'nav-arrow-btn nav-arrow-right diaporama-nav';
+          nextBtn.id = 'slideNextBtn';
+          nextBtn.className = 'nav-arrow-btn nav-arrow-right slide-nav';
           nextBtn.innerHTML = '&gt;';
-          nextBtn.onclick = () => navigateMainDiaporama(1);
+          nextBtn.onclick = () => navigateMainSlide(1);
           grid.appendChild(nextBtn);
         }
 
         // Render first item
-        showMainDiaporamaItem(0);
+        showMainSlideItem(0);
 
         // Initialize swipe for mobile/tablet
         if (isMobileOrTablet) {
-          initializeMainDiaporamaSwipe(grid);
+          initializeMainSlideSwipe(grid);
         }
 
         // Start background preloading of all items (-1 = main view)
-        startDiaporamaPreloading(items, 0, -1);
+        startSlidePreloading(items, 0, -1);
       }
 
-      // Build HTML for a single diaporama item in Main view
-      function buildMainDiaporamaItemHtml(item, index) {
+      // Build HTML for a single slide item in Main view
+      // Layout: 4 mini-scroll zones + flexible image that takes remaining space
+      function buildMainSlideItemHtml(item, index) {
         const imageUrl = imageColumn && item[imageColumn.columnName] ? item[imageColumn.columnName] : '';
-        const name = nameColumn && item[nameColumn.columnName] ? item[nameColumn.columnName] : '';
 
         // Get SubId1, SubId2 from column config
         let subId1 = '';
@@ -7829,13 +8512,7 @@ DETECTION SYSTEM (working correctly):
           subId2 = item[placeColumn.columnName];
         }
 
-        // Build HTML structure
-        let html = '<div class="diaporama-item" data-index="' + index + '">';
-
-        // === ABOVE PICTURE SECTION ===
-        html += '<div class="diaporama-above-picture">';
-
-        // Top Corner (positioned absolute)
+        // Collect TopCorner values
         const topCornerBits = [];
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
@@ -7846,23 +8523,32 @@ DETECTION SYSTEM (working correctly):
             topCornerBits.push(displayVal);
           }
         }
-        if (topCornerBits.length > 0) {
-          html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
+        const topCornerText = topCornerBits.join(" • ");
+
+        // Build HTML structure
+        let html = '<div class="slide-item" data-index="' + index + '">';
+
+        // === MINI SCROLL UP 1: SubId1 + TopCorner Row ===
+        // Only render if SubId1 or TopCorner has content
+        if (subId1 || topCornerText) {
+          html += '<div class="slide-scroll-up-1">';
+          html += '<div class="slide-subid1-row">';
+          // Spacer to balance TopCorner (invisible, same width as TopCorner)
+          if (topCornerText) {
+            html += '<div class="slide-subid1-spacer">' + topCornerText + '</div>';
+          }
+          // SubId1 centered
+          html += '<div class="slide-name">' + (subId1 || '') + '</div>';
+          // TopCorner on the right
+          if (topCornerText) {
+            html += '<div class="slide-topcorner">' + topCornerText + '</div>';
+          }
+          html += '</div>'; // End subid1-row
+          html += '</div>'; // End scroll-up-1
         }
 
-        // Primary Identifier - HIDDEN in diaporama layout
-
-        // SubId1 (centered, same size as Primary ID in detail view)
-        if (subId1) {
-          html += '<div class="detail-name diaporama-name">' + subId1 + '</div>';
-        }
-
-        // SubId2 (centered, above picture)
-        if (subId2) {
-          html += '<div class="detail-subtitle diaporama-subid1">' + subId2 + '</div>';
-        }
-
-        // Long text Up
+        // === MINI SCROLL UP 2: Long Text Up ===
+        let longTextUpHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextup") continue;
@@ -7870,83 +8556,27 @@ DETECTION SYSTEM (working correctly):
           if (val != null && String(val).trim() !== "") {
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtextup">' +
-                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              longTextUpHtml += '<div class="slide-longtext-up">' +
+                '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextup">' + displayVal + '</div>';
+              longTextUpHtml += '<div class="slide-longtext-up">' + displayVal + '</div>';
             }
           }
         }
+        // === LEFT COLUMN WRAPPER (for landscape layout - contains image and caption) ===
+        html += '<div class="slide-left-column">';
 
-        html += '</div>'; // End above-picture
-
-        // === IMAGE SECTION ===
-        html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
+        // === IMAGE SECTION (Flexible, takes remaining space) ===
+        html += '<div class="slide-image-wrapper" data-image-url="' + imageUrl + '">';
         if (!imageUrl) {
-          html += '<div style="width:100%;height:200px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
+          html += '<div style="width:100%;height:100%;min-height:100px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
         }
-        // Images will be loaded by setupDiaporamaImages() using data-image-url
+        // Images will be loaded by setupSlideImages() using data-image-url
         html += '</div>';
 
-        // === BELOW PICTURE SECTION ===
-        html += '<div class="diaporama-below-picture">';
-
-        // Two column section: Detail Left and Detail Right
-        const leftFields = [];
-        const rightFields = [];
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace === "detailleft") {
-            leftFields.push(config);
-          } else if (config.itemPlace === "detailright") {
-            rightFields.push(config);
-          }
-        }
-
-        if (leftFields.length > 0 || rightFields.length > 0) {
-          html += '<div class="diaporama-two-column">';
-
-          // Left column
-          html += '<div class="diaporama-col-left">';
-          for (let i = 0; i < leftFields.length; i++) {
-            const config = leftFields[i];
-            const val = item[config.columnName];
-            if (val != null && String(val).trim() !== "") {
-              if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-                const linkLabel = config.displayName || config.columnName;
-                html += '<div class="diaporama-field">' +
-                  '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-              } else {
-                const displayVal = config.type === "date" ? formatDate(val) : val;
-                html += '<div class="diaporama-field">' + displayVal + '</div>';
-              }
-            }
-          }
-          html += '</div>';
-
-          // Right column
-          html += '<div class="diaporama-col-right">';
-          for (let i = 0; i < rightFields.length; i++) {
-            const config = rightFields[i];
-            const val = item[config.columnName];
-            if (val != null && String(val).trim() !== "") {
-              if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-                const linkLabel = config.displayName || config.columnName;
-                html += '<div class="diaporama-field">' +
-                  '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-              } else {
-                const displayVal = config.type === "date" ? formatDate(val) : val;
-                html += '<div class="diaporama-field">' + displayVal + '</div>';
-              }
-            }
-          }
-          html += '</div>';
-
-          html += '</div>'; // End two-column
-        }
-
-        // Long text Down
+        // === LONG TEXT DOWN (NOT scrollable, fixed - caption under image) ===
+        let longTextDownHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextdown") continue;
@@ -7954,83 +8584,142 @@ DETECTION SYSTEM (working correctly):
           if (val != null && String(val).trim() !== "") {
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtext-down">' +
-                '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              longTextDownHtml += '<div class="slide-longtext-down">' +
+                '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtext-down">' + displayVal + '</div>';
+              longTextDownHtml += '<div class="slide-longtext-down">' + displayVal + '</div>';
             }
           }
         }
+        if (longTextDownHtml) {
+          html += '<div class="slide-longtext-down-wrapper">' + longTextDownHtml + '</div>';
+        }
 
-        // Bottom - text items on own lines, links grouped inline (right to left)
+        html += '</div>'; // End slide-left-column
+
+        // === MINI SCROLL DOWN 1: Bottom Only ===
+        // Note: Detail Left and Detail Right fields are not displayed in Slide view
+        // Collect Bottom content
         let bottomHtml = '';
         let linkGroup = '';
-
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
-
             if (isLink) {
               const linkLabel = config.displayName || config.columnName;
-              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
             } else {
-              // Text item - first close any open link group
               if (linkGroup) {
-                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+                bottomHtml += '<div class="slide-bottom-links">' + linkGroup + '</div>';
                 linkGroup = '';
               }
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
+              bottomHtml += '<div class="slide-bottom-text">' + displayVal + '</div>';
+            }
+          }
+        }
+        if (linkGroup) {
+          bottomHtml += '<div class="slide-bottom-links">' + linkGroup + '</div>';
+        }
+
+        // === RIGHT COLUMN WRAPPER (for landscape layout - contains scroll-up-2 and scroll-down-1) ===
+        // Check if right column is empty (both Long text Up and Bottom are empty) for compact layout
+        const isCompactLayout = !longTextUpHtml && !bottomHtml;
+        if (isCompactLayout) {
+          // Add compact class for narrower layout in landscape orientation
+          html = html.replace('<div class="slide-item"', '<div class="slide-item slide-compact"');
+        }
+
+        // Only create wrapper if there's right column content
+        if (longTextUpHtml || bottomHtml) {
+          html += '<div class="slide-right-column">';
+          if (longTextUpHtml) {
+            html += '<div class="slide-scroll-up-2">' + longTextUpHtml + '</div>';
+          }
+          if (bottomHtml) {
+            html += '<div class="slide-scroll-down-1">';
+            html += '<div class="slide-bottom">' + bottomHtml + '</div>';
+            html += '</div>';
+          }
+          html += '</div>'; // End slide-right-column
+        }
+
+        // === MINI SCROLL DOWN 2: SubId2 ===
+        // Iterates through ALL columns with itemPlace === "place" or "subid2"
+        // Supports text and external links - consecutive links grouped on same row
+        let subId2Html = '';
+        let subId2LinkGroup = '';
+
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          // Include columns with itemPlace "place" or "subid2"
+          if (config.itemPlace !== "place" && config.itemPlace !== "subid2") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
+            if (isLink) {
+              const linkLabel = config.displayName || config.columnName;
+              subId2LinkGroup += '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+            } else {
+              // Text item - first close any open link group
+              if (subId2LinkGroup) {
+                subId2Html += '<div class="slide-subid2-links">' + subId2LinkGroup + '</div>';
+                subId2LinkGroup = '';
+              }
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              subId2Html += '<div class="slide-subid2-text">' + displayVal + '</div>';
             }
           }
         }
         // Close any remaining link group
-        if (linkGroup) {
-          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
-        }
-        if (bottomHtml) {
-          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+        if (subId2LinkGroup) {
+          subId2Html += '<div class="slide-subid2-links">' + subId2LinkGroup + '</div>';
         }
 
-        html += '</div>'; // End below-picture
-        html += '</div>'; // End diaporama-item
+        if (subId2Html) {
+          html += '<div class="slide-scroll-down-2">';
+          html += subId2Html;
+          html += '</div>';
+        }
+
+        html += '</div>'; // End slide-item
 
         return html;
       }
 
-      // Show specific item in horizontal diaporama for Main view
-      function showMainDiaporamaItem(index) {
-        if (index < 0 || index >= currentDiaporamaItems.length) return;
-        currentDiaporamaIndex = index;
+      // Show specific item in horizontal slide for Main view
+      function showMainSlideItem(index) {
+        if (index < 0 || index >= currentSlideItems.length) return;
+        currentSlideIndex = index;
 
-        const container = document.getElementById('diaporamaItemContainer');
+        const container = document.getElementById('slideItemContainer');
         if (!container) return;
 
-        container.innerHTML = buildMainDiaporamaItemHtml(currentDiaporamaItems[index], index);
+        container.innerHTML = buildMainSlideItemHtml(currentSlideItems[index], index);
 
-        // Set up image zoom handlers (no navigation on click - diaporama IS the detail view)
+        // Set up image zoom handlers (no navigation on click - slide IS the detail view)
         setTimeout(() => {
-          setupDiaporamaImages(container);
+          setupSlideImages(container);
         }, 0);
 
         // Update navigation button visibility
-        updateDiaporamaNavButtons();
+        updateSlideNavButtons();
       }
 
-      // Navigate horizontal diaporama for Main view
-      function navigateMainDiaporama(direction) {
-        const newIndex = currentDiaporamaIndex + direction;
-        if (newIndex >= 0 && newIndex < currentDiaporamaItems.length) {
-          showMainDiaporamaItem(newIndex);
+      // Navigate horizontal slide for Main view
+      function navigateMainSlide(direction) {
+        const newIndex = currentSlideIndex + direction;
+        if (newIndex >= 0 && newIndex < currentSlideItems.length) {
+          showMainSlideItem(newIndex);
         }
       }
 
-      // Initialize swipe detection for horizontal diaporama in Main view (mobile/tablet)
-      function initializeMainDiaporamaSwipe(container) {
+      // Initialize swipe detection for horizontal slide in Main view (mobile/tablet)
+      function initializeMainSlideSwipe(container) {
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -8054,9 +8743,9 @@ DETECTION SYSTEM (working correctly):
           if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY)) {
             if (Math.abs(swipeDistanceX) > swipeThreshold) {
               if (swipeDistanceX < 0) {
-                navigateMainDiaporama(1); // Swipe left = next
+                navigateMainSlide(1); // Swipe left = next
               } else {
-                navigateMainDiaporama(-1); // Swipe right = prev
+                navigateMainSlide(-1); // Swipe right = prev
               }
             }
           }
@@ -8851,8 +9540,8 @@ DETECTION SYSTEM (working correctly):
           renderLayerListView(standardizedItems, grid, layerIndex);
         } else if (viewType === 'table') {
           renderLayerTableView(standardizedItems, grid, layerIndex);
-        } else if (viewType === 'diaporama') {
-          renderLayerDiaporamaView(standardizedItems, grid, layerIndex);
+        } else if (viewType === 'slide') {
+          renderLayerSlideView(standardizedItems, grid, layerIndex);
         } else {
           // Default to cards view
           renderLayerCardsView(standardizedItems, grid, layerIndex);
@@ -8865,7 +9554,7 @@ DETECTION SYSTEM (working correctly):
       // Render layer items as cards
       function renderLayerCardsView(items, grid, layerIndex) {
         grid.classList.add('grid');
-        grid.classList.remove('list-view', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
+        grid.classList.remove('list-view', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
 
         // Get style for this layer
         const style = getStyleForLayer(layerIndex);
@@ -8952,7 +9641,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as list
       function renderLayerListView(items, grid, layerIndex) {
-        grid.classList.remove('grid', 'table-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
+        grid.classList.remove('grid', 'table-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
         grid.classList.add('list-view');
 
         // Get style for this layer
@@ -9033,7 +9722,7 @@ DETECTION SYSTEM (working correctly):
 
       // Render layer items as table
       function renderLayerTableView(items, grid, layerIndex) {
-        grid.classList.remove('grid', 'list-view', 'diaporama-view', 'diaporama-vertical', 'diaporama-horizontal');
+        grid.classList.remove('grid', 'list-view', 'slide-view', 'slide-vertical', 'slide-horizontal');
         grid.classList.add('table-view');
 
         // Get style for this layer
@@ -9222,58 +9911,58 @@ DETECTION SYSTEM (working correctly):
         }
       }
 
-      // Render layer items as diaporama (slideshow-style view)
+      // Render layer items as slide (slideshow-style view)
       // Styles: 'Vertical' (all items stacked, scroll) or 'Horizontal' (one at a time, nav buttons/swipe)
-      function renderLayerDiaporamaView(items, grid, layerIndex) {
+      function renderLayerSlideView(items, grid, layerIndex) {
         grid.classList.remove('grid', 'list-view', 'table-view', 'grid-rectangle');
-        grid.classList.add('diaporama-view');
+        grid.classList.add('slide-view');
 
         const style = getStyleForLayer(layerIndex);
         const isHorizontal = style === 'Horizontal';
 
         // Store items for navigation (used by horizontal style)
-        currentDiaporamaItems = items;
-        currentDiaporamaIndex = 0;
-        currentDiaporamaLayerIndex = layerIndex;
+        currentSlideItems = items;
+        currentSlideIndex = 0;
+        currentSlideLayerIndex = layerIndex;
 
         if (isHorizontal) {
-          grid.classList.add('diaporama-horizontal');
-          grid.classList.remove('diaporama-vertical');
-          renderDiaporamaHorizontal(items, grid, layerIndex);
+          grid.classList.add('slide-horizontal');
+          grid.classList.remove('slide-vertical');
+          renderSlideHorizontal(items, grid, layerIndex);
         } else {
           // Vertical - render all items stacked
-          grid.classList.add('diaporama-vertical');
-          grid.classList.remove('diaporama-horizontal');
-          renderDiaporamaVertical(items, grid, layerIndex);
+          grid.classList.add('slide-vertical');
+          grid.classList.remove('slide-horizontal');
+          renderSlideVertical(items, grid, layerIndex);
         }
       }
 
-      // Render all diaporama items vertically (scrollable)
-      function renderDiaporamaVertical(items, grid, layerIndex) {
+      // Render all slide items vertically (scrollable)
+      function renderSlideVertical(items, grid, layerIndex) {
         grid.innerHTML = '';
 
         for (let i = 0; i < items.length; i++) {
-          const itemHtml = buildDiaporamaItemHtml(items[i], i, layerIndex);
+          const itemHtml = buildSlideItemHtml(items[i], i, layerIndex);
           grid.innerHTML += itemHtml;
         }
 
         // After rendering, load first visible image immediately
         setTimeout(() => {
-          setupDiaporamaImages(grid);
+          setupSlideImages(grid);
         }, 0);
 
         // Start background preloading with priority on adjacent items
-        startDiaporamaPreloading(items, 0, layerIndex);
+        startSlidePreloading(items, 0, layerIndex);
       }
 
-      // Render horizontal diaporama (one item at a time with navigation)
-      function renderDiaporamaHorizontal(items, grid, layerIndex) {
+      // Render horizontal slide (one item at a time with navigation)
+      function renderSlideHorizontal(items, grid, layerIndex) {
         grid.innerHTML = '';
 
         // Create container for the single visible item
         const itemContainer = document.createElement('div');
-        itemContainer.id = 'diaporamaItemContainer';
-        itemContainer.className = 'diaporama-item-container';
+        itemContainer.id = 'slideItemContainer';
+        itemContainer.className = 'slide-item-container';
         grid.appendChild(itemContainer);
 
         // Add navigation buttons for desktop
@@ -9283,38 +9972,37 @@ DETECTION SYSTEM (working correctly):
         if (!isMobileOrTablet) {
           // Desktop: add nav buttons
           const prevBtn = document.createElement('button');
-          prevBtn.id = 'diaporamaPrevBtn';
-          prevBtn.className = 'nav-arrow-btn nav-arrow-left diaporama-nav';
+          prevBtn.id = 'slidePrevBtn';
+          prevBtn.className = 'nav-arrow-btn nav-arrow-left slide-nav';
           prevBtn.innerHTML = '&lt;';
-          prevBtn.onclick = () => navigateDiaporama(-1);
+          prevBtn.onclick = () => navigateSlide(-1);
           grid.appendChild(prevBtn);
 
           const nextBtn = document.createElement('button');
-          nextBtn.id = 'diaporamaNextBtn';
-          nextBtn.className = 'nav-arrow-btn nav-arrow-right diaporama-nav';
+          nextBtn.id = 'slideNextBtn';
+          nextBtn.className = 'nav-arrow-btn nav-arrow-right slide-nav';
           nextBtn.innerHTML = '&gt;';
-          nextBtn.onclick = () => navigateDiaporama(1);
+          nextBtn.onclick = () => navigateSlide(1);
           grid.appendChild(nextBtn);
         }
 
         // Render first item
-        showDiaporamaItem(0);
+        showSlideItem(0);
 
         // Initialize swipe for mobile/tablet
         if (isMobileOrTablet) {
-          initializeDiaporamaSwipe(grid);
+          initializeSlideSwipe(grid);
         }
 
-        // Start background preloading of all items (current item loads via showDiaporamaItem)
-        startDiaporamaPreloading(items, 0, layerIndex);
+        // Start background preloading of all items (current item loads via showSlideItem)
+        startSlidePreloading(items, 0, layerIndex);
       }
 
-      // Build HTML for a single diaporama item
-      function buildDiaporamaItemHtml(standardItem, index, layerIndex) {
+      // Build HTML for a single slide item (Layer view)
+      // Layout: 4 mini-scroll zones + flexible image that takes remaining space
+      function buildSlideItemHtml(standardItem, index, layerIndex) {
         const item = standardItem._rawLayerItem || standardItem;
         const imageUrl = item["Picture Link"] || '';
-        const name = item["Names"] || '';
-        const description = item["Description"] || '';
 
         // Get SubId1, SubId2 from column config
         let subId1 = '';
@@ -9326,13 +10014,7 @@ DETECTION SYSTEM (working correctly):
           subId2 = item[placeColumn.columnName];
         }
 
-        // Build HTML structure
-        let html = '<div class="diaporama-item" data-index="' + index + '">';
-
-        // === ABOVE PICTURE SECTION ===
-        html += '<div class="diaporama-above-picture">';
-
-        // Top Corner (positioned absolute)
+        // Collect TopCorner values
         const topCornerBits = [];
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
@@ -9343,23 +10025,32 @@ DETECTION SYSTEM (working correctly):
             topCornerBits.push(displayVal);
           }
         }
-        if (topCornerBits.length > 0) {
-          html += '<div class="detail-topcorner diaporama-topcorner">' + topCornerBits.join(" • ") + '</div>';
+        const topCornerText = topCornerBits.join(" • ");
+
+        // Build HTML structure
+        let html = '<div class="slide-item" data-index="' + index + '">';
+
+        // === MINI SCROLL UP 1: SubId1 + TopCorner Row ===
+        // Only render if SubId1 or TopCorner has content
+        if (subId1 || topCornerText) {
+          html += '<div class="slide-scroll-up-1">';
+          html += '<div class="slide-subid1-row">';
+          // Spacer to balance TopCorner (invisible, same width as TopCorner)
+          if (topCornerText) {
+            html += '<div class="slide-subid1-spacer">' + topCornerText + '</div>';
+          }
+          // SubId1 centered
+          html += '<div class="slide-name">' + (subId1 || '') + '</div>';
+          // TopCorner on the right
+          if (topCornerText) {
+            html += '<div class="slide-topcorner">' + topCornerText + '</div>';
+          }
+          html += '</div>'; // End subid1-row
+          html += '</div>'; // End scroll-up-1
         }
 
-        // Primary Identifier - HIDDEN in diaporama layout
-
-        // SubId1 (centered, same size as Primary ID in detail view)
-        if (subId1) {
-          html += '<div class="detail-name diaporama-name">' + subId1 + '</div>';
-        }
-
-        // SubId2 (centered, above picture)
-        if (subId2) {
-          html += '<div class="detail-subtitle diaporama-subid1">' + subId2 + '</div>';
-        }
-
-        // Long text Up
+        // === MINI SCROLL UP 2: Long Text Up ===
+        let longTextUpHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextup") continue;
@@ -9367,65 +10058,28 @@ DETECTION SYSTEM (working correctly):
           if (val != null && String(val).trim() !== "") {
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtextup">' +
-                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              longTextUpHtml += '<div class="slide-longtext-up">' +
+                '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextup">' + displayVal + '</div>';
+              longTextUpHtml += '<div class="slide-longtext-up">' + displayVal + '</div>';
             }
           }
         }
+        // === LEFT COLUMN WRAPPER (for landscape layout - contains image and caption) ===
+        html += '<div class="slide-left-column">';
 
-        html += '</div>'; // End above-picture
-
-        // === MAIN IMAGE ===
-        html += '<div class="diaporama-image-wrapper" data-image-url="' + imageUrl + '">';
-        if (imageUrl) {
-          html += '<div class="diaporama-img-placeholder"></div>';
+        // === IMAGE SECTION (Flexible, takes remaining space) ===
+        html += '<div class="slide-image-wrapper" data-image-url="' + imageUrl + '">';
+        if (!imageUrl) {
+          html += '<div style="width:100%;height:100%;min-height:100px;background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 6px,#f3f4f6 6px,#f3f4f6 12px);border-radius:8px;"></div>';
+        } else {
+          html += '<div class="slide-img-placeholder"></div>';
         }
         html += '</div>';
 
-        // === BELOW PICTURE SECTION ===
-        html += '<div class="diaporama-below-picture">';
-
-        // SubId2 is now shown above picture, not below
-
-        // Two-column grid for Detail Left / Detail Right
-        let hasDetailColumns = false;
-        let leftColHtml = '';
-        let rightColHtml = '';
-
-        for (let i = 0; i < columnConfig.length; i++) {
-          const config = columnConfig[i];
-          if (config.itemPlace !== "detailleft" && config.itemPlace !== "detailright") continue;
-          const val = item[config.columnName];
-          if (val != null && String(val).trim() !== "") {
-            hasDetailColumns = true;
-            let fieldHtml = '';
-            if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
-              const linkLabel = config.displayName || config.columnName;
-              fieldHtml = '<div class="detail-field">' +
-                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
-            } else {
-              const displayVal = config.type === "date" ? formatDate(val) : val;
-              fieldHtml = '<div class="detail-field">' + displayVal + '</div>';
-            }
-            if (config.itemPlace === "detailleft") {
-              leftColHtml += fieldHtml;
-            } else {
-              rightColHtml += fieldHtml;
-            }
-          }
-        }
-
-        if (hasDetailColumns) {
-          html += '<div class="diaporama-two-column">';
-          html += '<div class="diaporama-col-left">' + leftColHtml + '</div>';
-          html += '<div class="diaporama-col-right">' + rightColHtml + '</div>';
-          html += '</div>';
-        }
-
-        // Long text Down
+        // === LONG TEXT DOWN (NOT scrollable, fixed - caption under image) ===
+        let longTextDownHtml = '';
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "longtextdown") continue;
@@ -9433,83 +10087,142 @@ DETECTION SYSTEM (working correctly):
           if (val != null && String(val).trim() !== "") {
             if (config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink") {
               const linkLabel = config.displayName || config.columnName;
-              html += '<div class="detail-field diaporama-longtextdown">' +
-                '<a href="' + val + '" target="_blank" class="link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
+              longTextDownHtml += '<div class="slide-longtext-down">' +
+                '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a></div>';
             } else {
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              html += '<div class="detail-field diaporama-longtextdown">' + displayVal + '</div>';
+              longTextDownHtml += '<div class="slide-longtext-down">' + displayVal + '</div>';
             }
           }
         }
+        if (longTextDownHtml) {
+          html += '<div class="slide-longtext-down-wrapper">' + longTextDownHtml + '</div>';
+        }
 
-        // Bottom - text items on own lines, links grouped inline (right to left)
+        html += '</div>'; // End slide-left-column
+
+        // === MINI SCROLL DOWN 1: Bottom Only ===
+        // Note: Detail Left and Detail Right fields are not displayed in Slide view
+        // Collect Bottom content
         let bottomHtml = '';
         let linkGroup = '';
-
         for (let i = 0; i < columnConfig.length; i++) {
           const config = columnConfig[i];
           if (config.itemPlace !== "bottom") continue;
           const val = item[config.columnName];
           if (val != null && String(val).trim() !== "") {
             const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
-
             if (isLink) {
               const linkLabel = config.displayName || config.columnName;
-              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill diaporama-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+              linkGroup += '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
             } else {
-              // Text item - first close any open link group
               if (linkGroup) {
-                bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
+                bottomHtml += '<div class="slide-bottom-links">' + linkGroup + '</div>';
                 linkGroup = '';
               }
               const displayVal = config.type === "date" ? formatDate(val) : val;
-              bottomHtml += '<div class="diaporama-bottom-text">' + displayVal + '</div>';
+              bottomHtml += '<div class="slide-bottom-text">' + displayVal + '</div>';
+            }
+          }
+        }
+        if (linkGroup) {
+          bottomHtml += '<div class="slide-bottom-links">' + linkGroup + '</div>';
+        }
+
+        // === RIGHT COLUMN WRAPPER (for landscape layout - contains scroll-up-2 and scroll-down-1) ===
+        // Check if right column is empty (both Long text Up and Bottom are empty) for compact layout
+        const isCompactLayout = !longTextUpHtml && !bottomHtml;
+        if (isCompactLayout) {
+          // Add compact class for narrower layout in landscape orientation
+          html = html.replace('<div class="slide-item"', '<div class="slide-item slide-compact"');
+        }
+
+        // Only create wrapper if there's right column content
+        if (longTextUpHtml || bottomHtml) {
+          html += '<div class="slide-right-column">';
+          if (longTextUpHtml) {
+            html += '<div class="slide-scroll-up-2">' + longTextUpHtml + '</div>';
+          }
+          if (bottomHtml) {
+            html += '<div class="slide-scroll-down-1">';
+            html += '<div class="slide-bottom">' + bottomHtml + '</div>';
+            html += '</div>';
+          }
+          html += '</div>'; // End slide-right-column
+        }
+
+        // === MINI SCROLL DOWN 2: SubId2 ===
+        // Iterates through ALL columns with itemPlace === "place" or "subid2"
+        // Supports text and external links - consecutive links grouped on same row
+        let subId2Html = '';
+        let subId2LinkGroup = '';
+
+        for (let i = 0; i < columnConfig.length; i++) {
+          const config = columnConfig[i];
+          // Include columns with itemPlace "place" or "subid2"
+          if (config.itemPlace !== "place" && config.itemPlace !== "subid2") continue;
+          const val = item[config.columnName];
+          if (val != null && String(val).trim() !== "") {
+            const isLink = config.type === "url" || config.specialRole === "externallink" || config.specialRole === "formulaexternallink";
+            if (isLink) {
+              const linkLabel = config.displayName || config.columnName;
+              subId2LinkGroup += '<a href="' + val + '" target="_blank" class="link-pill slide-link-pill" rel="noopener noreferrer">🔗 ' + linkLabel + '</a>';
+            } else {
+              // Text item - first close any open link group
+              if (subId2LinkGroup) {
+                subId2Html += '<div class="slide-subid2-links">' + subId2LinkGroup + '</div>';
+                subId2LinkGroup = '';
+              }
+              const displayVal = config.type === "date" ? formatDate(val) : val;
+              subId2Html += '<div class="slide-subid2-text">' + displayVal + '</div>';
             }
           }
         }
         // Close any remaining link group
-        if (linkGroup) {
-          bottomHtml += '<div class="diaporama-bottom-links">' + linkGroup + '</div>';
-        }
-        if (bottomHtml) {
-          html += '<div class="diaporama-bottom">' + bottomHtml + '</div>';
+        if (subId2LinkGroup) {
+          subId2Html += '<div class="slide-subid2-links">' + subId2LinkGroup + '</div>';
         }
 
-        html += '</div>'; // End below-picture
-        html += '</div>'; // End diaporama-item
+        if (subId2Html) {
+          html += '<div class="slide-scroll-down-2">';
+          html += subId2Html;
+          html += '</div>';
+        }
+
+        html += '</div>'; // End slide-item
 
         return html;
       }
 
-      // Set up images for diaporama items (lazy load with progressive loading)
-      function setupDiaporamaImages(container) {
-        const imageWrappers = container.querySelectorAll('.diaporama-image-wrapper');
+      // Set up images for slide items (lazy load with progressive loading)
+      function setupSlideImages(container) {
+        const imageWrappers = container.querySelectorAll('.slide-image-wrapper');
         imageWrappers.forEach(wrapper => {
           const imageUrl = wrapper.dataset.imageUrl;
           if (!imageUrl) return;
 
           const fileId = extractDriveFileId(imageUrl);
           if (fileId) {
-            loadDiaporamaImage(fileId, wrapper);
+            loadSlideImage(fileId, wrapper);
           } else if (imageUrl) {
-            loadDiaporamaImageDirect(imageUrl, wrapper);
+            loadSlideImageDirect(imageUrl, wrapper);
           }
         });
       }
 
-      // Load diaporama image with progressive loading (similar to detail view)
-      async function loadDiaporamaImage(fileId, wrapper) {
+      // Load slide image with progressive loading (similar to detail view)
+      async function loadSlideImage(fileId, wrapper) {
         try {
           if (memoryCache.has(fileId)) {
             const cached = memoryCache.get(fileId);
-            applyDiaporamaImage(wrapper, cached.thumbnail, cached.full);
+            applySlideImage(wrapper, cached.thumbnail, cached.full);
             return;
           }
 
           const dbCached = await imageCacheDB.get(fileId);
           if (dbCached && dbCached.full) {
             memoryCache.set(fileId, { full: dbCached.full, thumbnail: dbCached.thumbnail });
-            applyDiaporamaImage(wrapper, dbCached.thumbnail, dbCached.full);
+            applySlideImage(wrapper, dbCached.thumbnail, dbCached.full);
             return;
           }
 
@@ -9531,30 +10244,30 @@ DETECTION SYSTEM (working correctly):
           memoryCache.set(fileId, { full: fullDataUrl, thumbnail: thumbnailDataUrl });
           await imageCacheDB.set(fileId, fullDataUrl, thumbnailDataUrl);
 
-          applyDiaporamaImage(wrapper, thumbnailDataUrl, fullDataUrl);
+          applySlideImage(wrapper, thumbnailDataUrl, fullDataUrl);
         } catch (err) {
-          console.error("Diaporama image load error:", err);
+          console.error("Slide image load error:", err);
         }
       }
 
-      // Load direct URL image for diaporama
-      function loadDiaporamaImageDirect(url, wrapper) {
-        applyDiaporamaImage(wrapper, null, url);
+      // Load direct URL image for slide
+      function loadSlideImageDirect(url, wrapper) {
+        applySlideImage(wrapper, null, url);
       }
 
-      // Apply image to diaporama wrapper with click-to-zoom
-      function applyDiaporamaImage(wrapper, thumbnailUrl, fullUrl) {
+      // Apply image to slide wrapper with click-to-zoom
+      function applySlideImage(wrapper, thumbnailUrl, fullUrl) {
         wrapper.innerHTML = '';
 
         if (thumbnailUrl) {
           const placeholder = document.createElement('img');
-          placeholder.className = 'diaporama-img placeholder';
+          placeholder.className = 'slide-img placeholder';
           placeholder.src = thumbnailUrl;
           wrapper.appendChild(placeholder);
         }
 
         const fullImg = document.createElement('img');
-        fullImg.className = 'diaporama-img full';
+        fullImg.className = 'slide-img full';
         fullImg.onload = () => {
           fullImg.classList.add('loaded');
           setTimeout(() => {
@@ -9571,21 +10284,21 @@ DETECTION SYSTEM (working correctly):
         wrapper.appendChild(fullImg);
       }
 
-      // Diaporama state for horizontal navigation
-      let currentDiaporamaItems = [];
-      let currentDiaporamaIndex = 0;
-      let currentDiaporamaLayerIndex = 0;
+      // Slide state for horizontal navigation
+      let currentSlideItems = [];
+      let currentSlideIndex = 0;
+      let currentSlideLayerIndex = 0;
 
-      // Diaporama preloading state
-      let diaporamaPreloadSessionId = 0;  // Incremented on each new diaporama view to invalidate old preloads
-      let diaporamaPreloadQueue = [];     // Queue of items to preload
-      let diaporamaPreloadInProgress = false;
+      // Slide preloading state
+      let slidePreloadSessionId = 0;  // Incremented on each new slide view to invalidate old preloads
+      let slidePreloadQueue = [];     // Queue of items to preload
+      let slidePreloadInProgress = false;
 
-      // Preload a diaporama image (cache only, no DOM update)
+      // Preload a slide image (cache only, no DOM update)
       // Returns true if image was loaded/cached, false if skipped or failed
-      async function preloadDiaporamaImage(imageUrl, sessionId) {
+      async function preloadSlideImage(imageUrl, sessionId) {
         // Check if session is still valid (user hasn't navigated away)
-        if (sessionId !== diaporamaPreloadSessionId) {
+        if (sessionId !== slidePreloadSessionId) {
           return false;
         }
 
@@ -9606,7 +10319,7 @@ DETECTION SYSTEM (working correctly):
           }
 
           // Check session still valid before network fetch
-          if (sessionId !== diaporamaPreloadSessionId) {
+          if (sessionId !== slidePreloadSessionId) {
             return false;
           }
 
@@ -9624,7 +10337,7 @@ DETECTION SYSTEM (working correctly):
             if (!json.ok) return false;
 
             // Check session still valid after fetch
-            if (sessionId !== diaporamaPreloadSessionId) {
+            if (sessionId !== slidePreloadSessionId) {
               return false;
             }
 
@@ -9634,10 +10347,10 @@ DETECTION SYSTEM (working correctly):
             memoryCache.set(fileId, { full: fullDataUrl, thumbnail: thumbnailDataUrl });
             await imageCacheDB.set(fileId, fullDataUrl, thumbnailDataUrl);
 
-            console.log('Preloaded diaporama image:', fileId.substring(0, 10) + '...');
+            console.log('Preloaded slide image:', fileId.substring(0, 10) + '...');
             return true;
           } catch (err) {
-            console.error("Diaporama preload error:", err);
+            console.error("Slide preload error:", err);
             return false;
           }
         } else if (imageUrl) {
@@ -9653,15 +10366,15 @@ DETECTION SYSTEM (working correctly):
         return false;
       }
 
-      // Start background preloading for diaporama items
+      // Start background preloading for slide items
       // Priority: current item first, then adjacent items, then remaining items with delays
-      function startDiaporamaPreloading(items, currentIndex, layerIndex) {
+      function startSlidePreloading(items, currentIndex, layerIndex) {
         // Increment session ID to invalidate any previous preload operations
-        diaporamaPreloadSessionId++;
-        const sessionId = diaporamaPreloadSessionId;
+        slidePreloadSessionId++;
+        const sessionId = slidePreloadSessionId;
 
         // Clear previous queue
-        diaporamaPreloadQueue = [];
+        slidePreloadQueue = [];
 
         if (!items || items.length === 0) return;
 
@@ -9699,31 +10412,31 @@ DETECTION SYSTEM (working correctly):
         // Start preloading
         (async function() {
           // Phase 1: Preload adjacent items in parallel (no delay)
-          console.log('Diaporama preload: Starting adjacent items (' + adjacentIndices.length + ')');
+          console.log('Slide preload: Starting adjacent items (' + adjacentIndices.length + ')');
           const adjacentPromises = adjacentIndices.map(idx => {
             const imageUrl = getImageUrl(items[idx]);
-            return preloadDiaporamaImage(imageUrl, sessionId);
+            return preloadSlideImage(imageUrl, sessionId);
           });
           await Promise.all(adjacentPromises);
 
           // Check if session is still valid
-          if (sessionId !== diaporamaPreloadSessionId) {
-            console.log('Diaporama preload: Session invalidated, stopping');
+          if (sessionId !== slidePreloadSessionId) {
+            console.log('Slide preload: Session invalidated, stopping');
             return;
           }
 
           // Phase 2: Preload remaining items with staggered delays
-          console.log('Diaporama preload: Starting remaining items (' + remainingIndices.length + ')');
+          console.log('Slide preload: Starting remaining items (' + remainingIndices.length + ')');
           for (let i = 0; i < remainingIndices.length; i++) {
             // Check session validity before each item
-            if (sessionId !== diaporamaPreloadSessionId) {
-              console.log('Diaporama preload: Session invalidated, stopping');
+            if (sessionId !== slidePreloadSessionId) {
+              console.log('Slide preload: Session invalidated, stopping');
               return;
             }
 
             const idx = remainingIndices[i];
             const imageUrl = getImageUrl(items[idx]);
-            await preloadDiaporamaImage(imageUrl, sessionId);
+            await preloadSlideImage(imageUrl, sessionId);
 
             // Add small delay between items to avoid overwhelming the network
             // Skip delay for last item
@@ -9732,59 +10445,59 @@ DETECTION SYSTEM (working correctly):
             }
           }
 
-          console.log('Diaporama preload: Complete for session', sessionId);
+          console.log('Slide preload: Complete for session', sessionId);
         })();
       }
 
-      // Abort any ongoing diaporama preloading (called when switching layers/views)
-      function abortDiaporamaPreloading() {
-        diaporamaPreloadSessionId++;
-        diaporamaPreloadQueue = [];
-        console.log('Diaporama preload: Aborted');
+      // Abort any ongoing slide preloading (called when switching layers/views)
+      function abortSlidePreloading() {
+        slidePreloadSessionId++;
+        slidePreloadQueue = [];
+        console.log('Slide preload: Aborted');
       }
 
-      // Show specific item in horizontal diaporama
-      function showDiaporamaItem(index) {
-        if (index < 0 || index >= currentDiaporamaItems.length) return;
-        currentDiaporamaIndex = index;
+      // Show specific item in horizontal slide
+      function showSlideItem(index) {
+        if (index < 0 || index >= currentSlideItems.length) return;
+        currentSlideIndex = index;
 
-        const container = document.getElementById('diaporamaItemContainer');
+        const container = document.getElementById('slideItemContainer');
         if (!container) return;
 
-        container.innerHTML = buildDiaporamaItemHtml(currentDiaporamaItems[index], index, currentDiaporamaLayerIndex);
+        container.innerHTML = buildSlideItemHtml(currentSlideItems[index], index, currentSlideLayerIndex);
 
-        // Set up image zoom handlers (no navigation on click - diaporama IS the detail view)
+        // Set up image zoom handlers (no navigation on click - slide IS the detail view)
         setTimeout(() => {
-          setupDiaporamaImages(container);
+          setupSlideImages(container);
         }, 0);
 
         // Update navigation button visibility
-        updateDiaporamaNavButtons();
+        updateSlideNavButtons();
       }
 
-      // Navigate horizontal diaporama
-      function navigateDiaporama(direction) {
-        const newIndex = currentDiaporamaIndex + direction;
-        if (newIndex >= 0 && newIndex < currentDiaporamaItems.length) {
-          showDiaporamaItem(newIndex);
+      // Navigate horizontal slide
+      function navigateSlide(direction) {
+        const newIndex = currentSlideIndex + direction;
+        if (newIndex >= 0 && newIndex < currentSlideItems.length) {
+          showSlideItem(newIndex);
         }
       }
 
-      // Update diaporama nav button visibility
-      function updateDiaporamaNavButtons() {
-        const prevBtn = document.getElementById('diaporamaPrevBtn');
-        const nextBtn = document.getElementById('diaporamaNextBtn');
+      // Update slide nav button visibility
+      function updateSlideNavButtons() {
+        const prevBtn = document.getElementById('slidePrevBtn');
+        const nextBtn = document.getElementById('slideNextBtn');
 
         if (prevBtn) {
-          prevBtn.style.display = currentDiaporamaIndex > 0 ? 'flex' : 'none';
+          prevBtn.style.display = currentSlideIndex > 0 ? 'flex' : 'none';
         }
         if (nextBtn) {
-          nextBtn.style.display = currentDiaporamaIndex < currentDiaporamaItems.length - 1 ? 'flex' : 'none';
+          nextBtn.style.display = currentSlideIndex < currentSlideItems.length - 1 ? 'flex' : 'none';
         }
       }
 
-      // Initialize swipe detection for horizontal diaporama (mobile/tablet)
-      function initializeDiaporamaSwipe(container) {
+      // Initialize swipe detection for horizontal slide (mobile/tablet)
+      function initializeSlideSwipe(container) {
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -9808,9 +10521,9 @@ DETECTION SYSTEM (working correctly):
           if (Math.abs(swipeDistanceX) > Math.abs(swipeDistanceY)) {
             if (Math.abs(swipeDistanceX) > swipeThreshold) {
               if (swipeDistanceX < 0) {
-                navigateDiaporama(1); // Swipe left = next
+                navigateSlide(1); // Swipe left = next
               } else {
-                navigateDiaporama(-1); // Swipe right = previous
+                navigateSlide(-1); // Swipe right = previous
               }
             }
           }
@@ -11359,8 +12072,8 @@ DETECTION SYSTEM (working correctly):
         });
       }
 
-      // Track if fullscreen viewer is in diaporama mode for navigation
-      let fullscreenDiaporamaMode = false;
+      // Track if fullscreen viewer is in slide mode for navigation
+      let fullscreenSlideMode = false;
       // Track if fullscreen viewer is in detail mode for navigation
       let fullscreenDetailMode = false;
 
@@ -11379,10 +12092,10 @@ DETECTION SYSTEM (working correctly):
         imageZoomState.isOpen = true;
         imageZoomState.openedFromDetailView = (currentView === "detail");
 
-        // Check if we're in diaporama mode (horizontal style with items)
+        // Check if we're in slide mode (horizontal style with items)
         const grid = document.getElementById("gridView");
-        const isDiaporama = grid && (grid.classList.contains('diaporama-horizontal') || grid.classList.contains('diaporama-vertical'));
-        fullscreenDiaporamaMode = isDiaporama && currentDiaporamaItems && currentDiaporamaItems.length > 1;
+        const isSlide = grid && (grid.classList.contains('slide-horizontal') || grid.classList.contains('slide-vertical'));
+        fullscreenSlideMode = isSlide && currentSlideItems && currentSlideItems.length > 1;
 
         // Check if we're in detail view mode with multiple items
         fullscreenDetailMode = (currentView === "detail") && currentDisplayedItems && currentDisplayedItems.length > 1 && currentDetailIndex >= 0;
@@ -11410,7 +12123,7 @@ DETECTION SYSTEM (working correctly):
         const wasFromDetail = imageZoomState.openedFromDetailView;
         imageZoomState.isOpen = false;
         imageZoomState.openedFromDetailView = false;
-        fullscreenDiaporamaMode = false;
+        fullscreenSlideMode = false;
         fullscreenDetailMode = false;
 
         // Hide nav buttons
@@ -11436,13 +12149,13 @@ DETECTION SYSTEM (working correctly):
         const prevBtn = document.getElementById("imgOverlayPrev");
         const nextBtn = document.getElementById("imgOverlayNext");
 
-        // Handle diaporama mode
-        if (fullscreenDiaporamaMode) {
+        // Handle slide mode
+        if (fullscreenSlideMode) {
           if (prevBtn) {
-            prevBtn.style.display = currentDiaporamaIndex > 0 ? "flex" : "none";
+            prevBtn.style.display = currentSlideIndex > 0 ? "flex" : "none";
           }
           if (nextBtn) {
-            nextBtn.style.display = currentDiaporamaIndex < currentDiaporamaItems.length - 1 ? "flex" : "none";
+            nextBtn.style.display = currentSlideIndex < currentSlideItems.length - 1 ? "flex" : "none";
           }
           return;
         }
@@ -11463,31 +12176,31 @@ DETECTION SYSTEM (working correctly):
         if (nextBtn) nextBtn.style.display = "none";
       }
 
-      // Navigate to prev/next image in fullscreen diaporama mode
-      function navigateFullscreenDiaporama(direction) {
-        if (!fullscreenDiaporamaMode) return;
+      // Navigate to prev/next image in fullscreen slide mode
+      function navigateFullscreenSlide(direction) {
+        if (!fullscreenSlideMode) return;
 
-        const newIndex = currentDiaporamaIndex + direction;
-        if (newIndex < 0 || newIndex >= currentDiaporamaItems.length) return;
+        const newIndex = currentSlideIndex + direction;
+        if (newIndex < 0 || newIndex >= currentSlideItems.length) return;
 
-        // Navigate the diaporama
-        if (currentDiaporamaLayerIndex === -1) {
-          navigateMainDiaporama(direction);
+        // Navigate the slide
+        if (currentSlideLayerIndex === -1) {
+          navigateMainSlide(direction);
         } else {
-          navigateDiaporama(direction);
+          navigateSlide(direction);
         }
 
         // Get the new image URL directly from items array
-        const item = currentDiaporamaItems[newIndex];
+        const item = currentSlideItems[newIndex];
         let imageUrl = '';
 
-        if (currentDiaporamaLayerIndex === -1) {
-          // Main diaporama - use imageColumn
+        if (currentSlideLayerIndex === -1) {
+          // Main slide - use imageColumn
           if (imageColumn && item[imageColumn.columnName]) {
             imageUrl = item[imageColumn.columnName];
           }
         } else {
-          // Layer diaporama - check for _rawLayerItem or direct access
+          // Layer slide - check for _rawLayerItem or direct access
           const rawItem = item._rawLayerItem || item;
           imageUrl = rawItem["Picture Link"] || '';
         }
@@ -11551,10 +12264,10 @@ DETECTION SYSTEM (working correctly):
         updateFullscreenNavButtons();
       }
 
-      // Navigate fullscreen image (works for both diaporama and detail modes)
+      // Navigate fullscreen image (works for both slide and detail modes)
       function navigateFullscreenImage(direction) {
-        if (fullscreenDiaporamaMode) {
-          navigateFullscreenDiaporama(direction);
+        if (fullscreenSlideMode) {
+          navigateFullscreenSlide(direction);
         } else if (fullscreenDetailMode) {
           navigateFullscreenDetail(direction);
         }
@@ -11580,20 +12293,20 @@ DETECTION SYSTEM (working correctly):
           };
         }
 
-        // Swipe support for fullscreen in diaporama or detail mode
+        // Swipe support for fullscreen in slide or detail mode
         if (overlay) {
           let touchStartX = 0;
           let touchStartY = 0;
 
           overlay.addEventListener('touchstart', (e) => {
-            if (!fullscreenDiaporamaMode && !fullscreenDetailMode) return;
+            if (!fullscreenSlideMode && !fullscreenDetailMode) return;
             if (imageZoomState.scale > 1) return; // Don't swipe when zoomed
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
           }, { passive: true });
 
           overlay.addEventListener('touchend', (e) => {
-            if (!fullscreenDiaporamaMode && !fullscreenDetailMode) return;
+            if (!fullscreenSlideMode && !fullscreenDetailMode) return;
             if (imageZoomState.scale > 1) return; // Don't swipe when zoomed
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
@@ -11613,11 +12326,11 @@ DETECTION SYSTEM (working correctly):
         }
       }
 
-      // Keyboard navigation for diaporama and detail view (arrow keys)
+      // Keyboard navigation for slide and detail view (arrow keys)
       function setupKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
           // Check if fullscreen viewer is open with navigation enabled
-          if (imageZoomState.isOpen && (fullscreenDiaporamaMode || fullscreenDetailMode)) {
+          if (imageZoomState.isOpen && (fullscreenSlideMode || fullscreenDetailMode)) {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
               navigateFullscreenImage(-1);
@@ -11631,30 +12344,30 @@ DETECTION SYSTEM (working correctly):
             return;
           }
 
-          // Check if we're in diaporama view (not fullscreen)
+          // Check if we're in slide view (not fullscreen)
           const grid = document.getElementById("gridView");
-          const isDiaporamaHorizontal = grid && grid.classList.contains('diaporama-horizontal');
+          const isSlideHorizontal = grid && grid.classList.contains('slide-horizontal');
 
-          if (isDiaporamaHorizontal && currentDiaporamaItems && currentDiaporamaItems.length > 1) {
+          if (isSlideHorizontal && currentSlideItems && currentSlideItems.length > 1) {
             if (e.key === 'ArrowLeft') {
               e.preventDefault();
-              if (currentDiaporamaLayerIndex === -1) {
-                navigateMainDiaporama(-1);
+              if (currentSlideLayerIndex === -1) {
+                navigateMainSlide(-1);
               } else {
-                navigateDiaporama(-1);
+                navigateSlide(-1);
               }
             } else if (e.key === 'ArrowRight') {
               e.preventDefault();
-              if (currentDiaporamaLayerIndex === -1) {
-                navigateMainDiaporama(1);
+              if (currentSlideLayerIndex === -1) {
+                navigateMainSlide(1);
               } else {
-                navigateDiaporama(1);
+                navigateSlide(1);
               }
             }
             return;
           }
 
-          // Check if we're in detail view (not fullscreen, not diaporama)
+          // Check if we're in detail view (not fullscreen, not slide)
           const detailView = document.getElementById("detailView");
           const isDetailViewOpen = detailView && detailView.style.display === "block";
 
@@ -12739,10 +13452,10 @@ DETECTION SYSTEM (working correctly):
         // Initialize image zoom handlers
         setupImageZoom();
 
-        // Initialize fullscreen navigation (for diaporama mode)
+        // Initialize fullscreen navigation (for slide mode)
         setupFullscreenNavigation();
 
-        // Initialize keyboard navigation (arrow keys for diaporama)
+        // Initialize keyboard navigation (arrow keys for slide)
         setupKeyboardNavigation();
 
         // ==================== PWA INSTALL BANNER LOGIC (GitHub Pages Only) ====================
